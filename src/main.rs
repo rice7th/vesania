@@ -5,20 +5,25 @@ use glam::Vec2;
 use rgb::Rgba;
 
 mod bezier;
+mod shape;
+mod path;
+mod layer;
 
 fn main() {
     let mut my_canvas = Canvas::new(100, 100);
     my_canvas.fill_with(Rgba::from((255, 255, 255, 255)));
-    let pixel = my_canvas.pixel_at(50, 50);
-    *pixel = 0x00FF00FFu32;
-    my_canvas.write_to_png("out.png").unwrap();
 
     let my_curve = bezier::quadratic::Quadratic::new(Vec2::new(1., 1.), Vec2::new(6., 9.), Vec2::new(9., 4.0));
     let my_line  = bezier::line::Line::new(Vec2::new(1., 1.), Vec2::new(6., 9.));
 
     for a in 1..5 {
-        dbg!(my_curve.t(1.0 / (a as f32)));
+        let coords = my_curve.t(1.0 / (a as f32));
+        dbg!(coords);
+        let pixel = my_canvas.pixel_at((coords.x as u16) * 10, (coords.y as u16) * 10);
+        *pixel = 0x00FF00FFu32;
     }
+
+    my_canvas.write_to_png("out.png").unwrap();
 }
 
 pub struct Canvas {

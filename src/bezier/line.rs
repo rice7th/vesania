@@ -1,4 +1,4 @@
-use glam::Vec2;
+use glam::{Vec2, Vec4};
 use super::{lerp, Bezier};
 
 pub struct Line {
@@ -18,5 +18,12 @@ impl Bezier for Line {
             lerp(self.a.x, self.b.x, t),
             lerp(self.a.y, self.b.y, t)
         );
+    }
+    
+    fn bb(&self) -> glam::Vec4 {
+        return Vec4::new(
+            f32::min(self.a.x, self.b.x), f32::min(self.a.y, self.b.y),
+            f32::max(self.a.x, self.b.x), f32::max(self.a.y, self.b.y),
+        )
     }
 }

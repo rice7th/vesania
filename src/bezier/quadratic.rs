@@ -14,6 +14,7 @@ impl Quadratic {
 }
 
 impl Bezier for Quadratic {
+    // TODO: Use a polynomial
     fn t(&self, t: f32) -> Vec2 {
         let a = self.a;
         let b = self.b;
@@ -23,5 +24,9 @@ impl Bezier for Quadratic {
         let e = Vec2::new(lerp(b.x, c.x, t), lerp(b.y, c.y, t));
 
         return Vec2::new(lerp(d.x, e.x, t), lerp(e.y, d.y, t));
+    }
+
+    fn bb(&self) -> glam::Vec4 {
+        todo!()
     }
 }
