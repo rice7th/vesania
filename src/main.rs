@@ -3,24 +3,29 @@ use std::path::Path;
 use bezier::Bezier;
 use glam::Vec2;
 use rgb::Rgba;
+use shape::Shape;
 
 mod bezier;
 mod shape;
 mod path;
 mod layer;
+mod render;
 
 fn main() {
     let mut my_canvas = Canvas::new(100, 100);
     my_canvas.fill_with(Rgba::from((255, 255, 255, 255)));
 
     let my_curve = bezier::quadratic::Quadratic::new(Vec2::new(1., 1.), Vec2::new(6., 9.), Vec2::new(9., 4.0));
-    let my_line  = bezier::line::Line::new(Vec2::new(1., 1.), Vec2::new(6., 9.));
+    let my_line  = bezier::line::Line::new(Vec2::new(1., 1.), Vec2::new(3., 6.));
 
     for a in 1..5 {
-        let coords = my_curve.t(1.0 / (a as f32));
+        let coords = my_line.t(1.0 / (a as f32));
         dbg!(coords);
         let pixel = my_canvas.pixel_at((coords.x as u16) * 10, (coords.y as u16) * 10);
         *pixel = 0x00FF00FFu32;
+
+        let i = my_line.intersections(Vec2::new(0.0, 2.0));
+        dbg!(i);
     }
 
     my_canvas.write_to_png("out.png").unwrap();

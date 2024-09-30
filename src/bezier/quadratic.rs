@@ -1,4 +1,6 @@
 use glam::Vec2;
+use crate::shape::Shape;
+
 use super::{lerp, Bezier};
 
 /// # Quadratic Bezier curve
@@ -30,6 +32,12 @@ impl Bezier for Quadratic {
     }
 
     fn bb(&self) -> glam::Vec4 {
+        todo!()
+    }
+}
+
+impl Shape for Quadratic {
+    fn intersections(&self, p: Vec2) -> Vec<f32> {
         todo!()
     }
 }
