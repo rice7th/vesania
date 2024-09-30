@@ -1,22 +1,16 @@
 use std::path::Path;
 
-use bezier::Bezier;
+use vesania::shape::Shape;
+use vesania::bezier::Bezier;
 use glam::Vec2;
 use rgb::Rgba;
-use shape::Shape;
-
-mod bezier;
-mod shape;
-mod path;
-mod layer;
-mod render;
 
 fn main() {
     let mut my_canvas = Canvas::new(100, 100);
     my_canvas.fill_with(Rgba::from((255, 255, 255, 255)));
 
-    let my_curve = bezier::quadratic::Quadratic::new(Vec2::new(1., 1.), Vec2::new(6., 9.), Vec2::new(9., 4.0));
-    let my_line  = bezier::line::Line::new(Vec2::new(1., 1.), Vec2::new(3., 6.));
+    let my_curve = vesania::bezier::quadratic::Quadratic::new(Vec2::new(1., 1.), Vec2::new(6., 9.), Vec2::new(9., 4.0));
+    let my_line  = vesania::bezier::line::Line::new(Vec2::new(1., 1.), Vec2::new(3., 6.));
 
     for a in 1..5 {
         let coords = my_line.t(1.0 / (a as f32));
