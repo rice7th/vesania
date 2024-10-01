@@ -1,4 +1,8 @@
+use std::fmt::Debug;
+
 use glam::{Vec2, Vec4};
+
+use crate::shape::Shape;
 
 pub mod quadratic;
 pub mod line;
@@ -8,7 +12,7 @@ pub mod line;
 /// types of bezier curves. By default only Line and
 /// Quadratic are implemented, leaving higer order
 /// curves up to the user.
-pub trait Bezier {
+pub trait Bezier: Shape + Debug {
     /// # T value
     /// Get the coordinates of the point at `t`.
     /// Notice: while `t` should be in between 0

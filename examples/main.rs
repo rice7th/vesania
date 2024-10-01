@@ -1,26 +1,31 @@
-use std::path::Path;
-
+use vesania::bezier::line::Line;
+use vesania::layer::{Layer, Shader};
+use vesania::path::Path;
+use vesania::render::{FillRule, Renderer};
 use vesania::shape::Shape;
 use vesania::bezier::Bezier;
 use glam::Vec2;
 use rgb::Rgba;
 
+#[derive(Debug)]
+struct Mat {}
+impl Shader for Mat {
+    fn fill(&self, _x: f32, _y: f32, _w: f32, _h: f32) -> Rgba<f32> {
+        return Rgba { r: 1.0, g: 1.0, b: 1.0, a: 1.0 }
+    }
+}
+
 fn main() {
     let mut my_canvas = Canvas::new(100, 100);
     my_canvas.fill_with(Rgba::from((255, 255, 255, 255)));
 
-    let my_curve = vesania::bezier::quadratic::Quadratic::new(Vec2::new(1., 1.), Vec2::new(6., 9.), Vec2::new(9., 4.0));
-    let my_line  = vesania::bezier::line::Line::new(Vec2::new(1., 1.), Vec2::new(3., 6.));
+    let line = Line::new([1.0, 1.0].into(), [10.0, 10.0].into());
+    let path = Path::new(vec![Box::new(line)]);
 
-    for a in 1..5 {
-        let coords = my_line.t(1.0 / (a as f32));
-        dbg!(coords);
-        let pixel = my_canvas.pixel_at((coords.x as u16) * 10, (coords.y as u16) * 10);
-        *pixel = 0x00FF00FFu32;
+    let my_material = Mat{};
 
-        let i = my_line.intersections(Vec2::new(0.0, 2.0));
-        dbg!(i);
-    }
+    let rend = Renderer::new(path, Vec2::from([100., 100.]), FillRule::EvenOdd, &my_material);
+    dbg!(rend.render());
 
     my_canvas.write_to_png("out.png").unwrap();
 }
@@ -38,7 +43,7 @@ impl<'pix> Canvas {
         }
     }
 
-    pub fn write_to_png<P: AsRef<Path>>(&mut self, path: P) -> Result<(), lodepng::Error> {
+    pub fn write_to_png<P: AsRef<std::path::Path>>(&mut self, path: P) -> Result<(), lodepng::Error> {
         self.to_be();
         lodepng::encode32_file(path, &self.buffer, self.size.0.into(), self.size.1.into())
     }

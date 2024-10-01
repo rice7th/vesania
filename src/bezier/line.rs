@@ -3,6 +3,7 @@ use crate::shape::Shape;
 
 use super::{lerp, Bezier};
 
+#[derive(Debug)]
 pub struct Line {
     a: Vec2,
     b: Vec2
@@ -36,8 +37,8 @@ impl Shape for Line {
         if self.a.x == self.b.x {
             return vec![self.a.x];
         } else {
-            let m = dbg!((self.b.y - self.a.y) / (self.b.x - self.a.x));
-            let i = dbg!((dbg!(p.y) - dbg!(self.a.y)) / m + self.a.x);
+            let m = (self.b.y - self.a.y) / (self.b.x - self.a.x);
+            let i = (p.y - self.a.y) / m + self.a.x;
             return vec![i];
         }
     }

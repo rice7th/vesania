@@ -6,6 +6,7 @@ use super::{lerp, Bezier};
 /// # Quadratic Bezier curve
 /// A 2nd degree Bezier curve defined by three
 /// point, named `a`, `b` and `c`.
+#[derive(Debug)]
 pub struct Quadratic {
     a: Vec2,
     b: Vec2,

@@ -7,18 +7,29 @@ use rgb::Rgba;
 /// a buffer that contains a list of coverage
 /// values for each pixel, and a material `M`,
 /// responsible for painting each pixel.
-pub struct Layer<M> 
+#[derive(Debug)]
+pub struct Layer<'mat, M> 
 where
     M: Shader
 {
-    size: Vec2,
-    coverage: Vec<f32>,
-    material: M,
+    pub size: Vec2,
+    pub coverage: Vec<f32>,
+    pub material: &'mat M,
 }
 
-impl<M> Layer<M> where M: Shader {
+impl<'mat, M> Layer<'mat, M> where M: Shader {
+    pub fn new(size: Vec2, material: &M) -> Layer<M> {
+        return Layer {
+            size,
+            material,
+            coverage: Vec::with_capacity((size.x * size.y) as usize)
+        };
+    }
+}
+
+impl<'mat, M> Layer<'mat, M> where M: Shader {
     pub fn paint(&self) -> Rgba<f32> {
-        todo!()
+        todo!("Implement painting wrapper for each pixel");
     }
 }
 
