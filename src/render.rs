@@ -25,7 +25,7 @@ impl<'mat, M> Renderer<'mat, M> where M: Shader {
             for j in inters {
                 if j > p.x { winding += 1 }
             }
-            
+            dbg!(winding);
             if winding % 2 == 1 { *pixel = 1.0 } // For now let's do full coverage
         }
         return layer;

@@ -22,7 +22,7 @@ impl<'mat, M> Layer<'mat, M> where M: Shader {
         return Layer {
             size,
             material,
-            coverage: Vec::with_capacity((size.x * size.y) as usize)
+            coverage: vec![0.0; (size.x * size.y) as usize]
         };
     }
 }

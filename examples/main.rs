@@ -1,4 +1,5 @@
 use vesania::bezier::line::Line;
+use vesania::bezier::quadratic::Quadratic;
 use vesania::layer::{Layer, Shader};
 use vesania::path::Path;
 use vesania::render::{FillRule, Renderer};
@@ -16,7 +17,7 @@ impl Shader for Mat {
 }
 
 fn main() {
-    let mut my_canvas = Canvas::new(100, 100);
+    let mut my_canvas = Canvas::new(20, 20);
     my_canvas.fill_with(Rgba::from((255, 255, 255, 255)));
 
     let line = Line::new([1.0, 1.0].into(), [10.0, 10.0].into());
@@ -24,7 +25,7 @@ fn main() {
 
     let my_material = Mat{};
 
-    let rend = Renderer::new(path, Vec2::from([100., 100.]), FillRule::EvenOdd, &my_material);
+    let rend = Renderer::new(path, Vec2::from([20., 20.]), FillRule::EvenOdd, &my_material);
     dbg!(rend.render());
 
     my_canvas.write_to_png("out.png").unwrap();
