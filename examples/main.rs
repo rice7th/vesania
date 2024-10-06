@@ -20,8 +20,8 @@ fn main() {
     let mut my_canvas = Canvas::new(20, 20);
     my_canvas.fill_with(Rgba::from((255, 255, 255, 255)));
 
-    let line = Line::new([1.0, 1.0].into(), [10.0, 10.0].into());
-    let path = Path::new(vec![Box::new(line)]);
+    let quad = Quadratic::new([1.0, 1.0].into(), [10.0, 10.0].into(), [15.0, 8.0].into());
+    let path = Path::new(vec![Box::new(quad)]);
 
     let my_material = Mat{};
 

@@ -33,7 +33,7 @@ impl<'mat, M> Layer<'mat, M> where M: Shader {
     }
 }
 
-// DUH
+
 /// # Shader
 /// A simple interface for designing custom
 /// painting operations.

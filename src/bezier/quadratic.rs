@@ -1,4 +1,4 @@
-use glam::Vec2;
+use glam::{Vec2, Vec4};
 use crate::shape::Shape;
 
 use super::{lerp, Bezier};
@@ -32,13 +32,20 @@ impl Bezier for Quadratic {
         return Vec2::new(lerp(d.x, e.x, t), lerp(e.y, d.y, t));
     }
 
-    fn bb(&self) -> glam::Vec4 {
-        todo!()
+    fn bb(&self) -> Vec4 {
+        // FIXME: This approach sucks. Actual quadratic beziers AABBs
+        // use simple derivatives to figure out local minima and maxima
+        // of the function. The funny thing is that I have no idea how
+        // to take derivatives :'(
+        // For now let's just take the AABB of the control points.
+        let max = Vec2::max(self.a, Vec2::max(self.b, self.c));
+        let min = Vec2::min(self.a, Vec2::min(self.b, self.c));
+        return Vec4::from([min.x, min.y, max.x, max.y]);
     }
 }
 
 impl Shape for Quadratic {
     fn intersections(&self, p: Vec2) -> Vec<f32> {
-        todo!()
+        
     }
 }
