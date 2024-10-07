@@ -26,7 +26,13 @@ fn main() {
     let my_material = Mat{};
 
     let rend = Renderer::new(path, Vec2::from([20., 20.]), FillRule::EvenOdd, &my_material);
-    dbg!(rend.render());
+    let img = rend.render();
+
+    for (i, pix) in img.coverage.iter().enumerate() {
+        if *pix > 0.0 {
+            *my_canvas.pixel_at_index(i) = 0xFF0000FF;
+        }
+    }
 
     my_canvas.write_to_png("out.png").unwrap();
 }
@@ -51,6 +57,10 @@ impl<'pix> Canvas {
 
     pub fn pixel_at(&mut self, x: u16, y: u16) -> &mut u32 {
         return self.buffer.get_mut((y * self.size.0 + x) as usize).unwrap()
+    }
+
+    pub fn pixel_at_index(&mut self, i: usize) -> &mut u32 {
+        return self.buffer.get_mut(i).unwrap()
     }
 
     pub fn fill_with(&mut self, col: Rgba<u8>) {

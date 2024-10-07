@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{layer::{Layer, Shader}, path::Path};
+use crate::{layer::{Layer, Shader}, path::Path, shape::Shape, bezier::Bezier};
 
 #[derive(Debug)]
 pub struct Renderer<'mat, M: Shader> {
@@ -15,15 +15,18 @@ impl<'mat, M> Renderer<'mat, M> where M: Shader {
         return Renderer { path, size, rule, material };
     }
 
-    // Todo: use SIMD and a lot of threads
+    // TODO: use SIMD and a lot of threads
+    // TODO: Split into scanlines
     pub fn render(&self) -> Layer<M> {
+        dbg!("Loolapazoola");
         let mut layer = Layer::new(self.size, self.material);
         for (i, pixel) in layer.coverage.iter_mut().enumerate() {
-            let p = Vec2::from([i as f32 % layer.size.x, (i as f32 / layer.size.y).floor()]);
-            let inters = self.path.get_intersections(p);
+            let p = dbg!(Vec2::from([i as f32 % layer.size.x, (i as f32 / layer.size.y).floor()]));
+            let inters = dbg!(self.path.intersections(p));
             let mut winding = 0;
             for j in inters {
-                if j > p.x { winding += 1 }
+                dbg!("Intersection");
+                if self.path.t(j).x > p.x { winding += 1; dbg!("AVOID!");}
             }
             dbg!(winding);
             if winding % 2 == 1 { *pixel = 1.0 } // For now let's do full coverage

@@ -44,8 +44,31 @@ impl Bezier for Quadratic {
     }
 }
 
+// TODO: Add Epsilon values because floating point math sucks
 impl Shape for Quadratic {
     fn intersections(&self, p: Vec2) -> Vec<f32> {
-        
+        // Since we're shooting horizontal rays, we only need to care
+        // about the y components of the bezier. The intersections
+        // can be found by solving the parabola equation formed by
+        // the y component of the quadratic curve:
+        // at² + bt + c = 0
+        // 
+        // The coefficients are derived from the control points as
+        // specified below:
+        let mut inters = vec![];
+        let a = self.a.y + 2.0*self.b.y + self.c.y;
+        let b = 2.0 * (self.b.y - self.a.y);
+        let c = self.a.y - p.y;
+        let delta = b*b - 4.0*a*c;
+
+        if delta <= 0.0 { return vec![]; } // No intersections
+
+        let t1 = (-b + delta.sqrt()) / (2.0 * a);
+        let t2 = (-b - delta.sqrt()) / (2.0 * a);
+
+        if t1 <= 1.0 && t1 >= 0.0 { inters.push(t1) }
+        if t2 <= 1.0 && t2 >= 0.0 { inters.push(t2) }
+
+        return inters;
     }
 }
