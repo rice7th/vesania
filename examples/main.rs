@@ -17,15 +17,15 @@ impl Shader for Mat {
 }
 
 fn main() {
-    let mut my_canvas = Canvas::new(20, 20);
+    let mut my_canvas = Canvas::new(200, 200);
     my_canvas.fill_with(Rgba::from((255, 255, 255, 255)));
 
-    let quad = Quadratic::new([1.0, 1.0].into(), [10.0, 10.0].into(), [15.0, 8.0].into());
+    let quad = Quadratic::new([10.0, 10.0].into(), [100.0, 100.0].into(), [150.0, 80.0].into());
     let path = Path::new(vec![Box::new(quad)]);
 
     let my_material = Mat{};
 
-    let rend = Renderer::new(path, Vec2::from([20., 20.]), FillRule::EvenOdd, &my_material);
+    let rend = Renderer::new(path, Vec2::from([200., 200.]), FillRule::EvenOdd, &my_material);
     let img = rend.render();
 
     for (i, pix) in img.coverage.iter().enumerate() {

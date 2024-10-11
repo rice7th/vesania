@@ -29,7 +29,7 @@ impl Bezier for Quadratic {
         let d = Vec2::new(lerp(a.x, b.x, t), lerp(a.y, b.y, t));
         let e = Vec2::new(lerp(b.x, c.x, t), lerp(b.y, c.y, t));
 
-        return Vec2::new(lerp(d.x, e.x, t), lerp(e.y, d.y, t));
+        return Vec2::new(lerp(d.x, e.x, t), lerp(d.y, e.y, t));
     }
 
     fn bb(&self) -> Vec4 {
@@ -56,7 +56,7 @@ impl Shape for Quadratic {
         // The coefficients are derived from the control points as
         // specified below:
         let mut inters = vec![];
-        let a = self.a.y + 2.0*self.b.y + self.c.y;
+        let a = self.a.y - 2.0*self.b.y + self.c.y;
         let b = 2.0 * (self.b.y - self.a.y);
         let c = self.a.y - p.y;
         let delta = b*b - 4.0*a*c;

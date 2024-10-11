@@ -18,17 +18,14 @@ impl<'mat, M> Renderer<'mat, M> where M: Shader {
     // TODO: use SIMD and a lot of threads
     // TODO: Split into scanlines
     pub fn render(&self) -> Layer<M> {
-        dbg!("Loolapazoola");
         let mut layer = Layer::new(self.size, self.material);
         for (i, pixel) in layer.coverage.iter_mut().enumerate() {
-            let p = dbg!(Vec2::from([i as f32 % layer.size.x, (i as f32 / layer.size.y).floor()]));
-            let inters = dbg!(self.path.intersections(p));
+            let p = Vec2::from([i as f32 % layer.size.x, (i as f32 / layer.size.y).floor()]);
+            let inters = self.path.intersections(p);
             let mut winding = 0;
             for j in inters {
-                dbg!("Intersection");
-                if self.path.t(j).x > p.x { winding += 1; dbg!("AVOID!");}
+                if self.path.t(j).x > p.x { winding += 1 }
             }
-            dbg!(winding);
             if winding % 2 == 1 { *pixel = 1.0 } // For now let's do full coverage
         }
         return layer;

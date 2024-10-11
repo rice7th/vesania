@@ -30,7 +30,7 @@ impl Shape for Path {
 
 impl Bezier for Path {
     fn t(&self, t: f32) -> Vec2 {
-        let index = t.floor() as usize;
+        let index = (t - 0.00001).floor() as usize;
         return self.data[index].t(t.fract());
     }
     
