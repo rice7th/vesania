@@ -16,12 +16,16 @@ impl Path {
 impl Shape for Path {
     fn intersections(&self, p: Vec2) -> Vec<f32> {
         let mut intersections = Vec::new();
-        for element in &self.data {
+        for (index, element) in self.data.iter().enumerate() {
             let bounds = element.bb();
             if p.y > bounds.wy().min_element()
             && p.y < bounds.wy().max_element() {
                 // Our ray at this height hits this element.
-                intersections.extend(element.intersections(p));
+                let el_int = element.intersections(p)
+                    .iter()
+                    .map(|i| i + index as f32)
+                    .collect::<Vec<f32>>();
+                intersections.extend(el_int);
             }
         }
         return intersections;
