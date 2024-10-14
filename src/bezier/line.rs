@@ -29,6 +29,10 @@ impl Bezier for Line {
             f32::max(self.a.x, self.b.x), f32::max(self.a.y, self.b.y),
         )
     }
+
+    fn slope(&self, t: f32) -> f32 {
+        return (self.b.y - self.a.y) / (self.b.x - self.a.x);
+    }
 }
 
 impl Shape for Line {

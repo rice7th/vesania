@@ -23,6 +23,11 @@ pub trait Bezier: Shape + Debug {
     /// # Bounding Box
     /// Get the AABB of the curve.
     fn bb(&self) -> Vec4;
+
+    /// # Slope
+    /// Get the slope of the curve
+    /// at `t`.
+    fn slope(&self, t: f32) -> f32;
 }
 
 // bug?

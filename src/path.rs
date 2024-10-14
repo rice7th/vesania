@@ -11,6 +11,19 @@ impl Path {
     pub fn new(path: Vec<Box<dyn Bezier>>) -> Path {
         return Path { data: path }
     }
+
+    /// # Preprocessor
+    /// Paths in `vesania` are preprocessed
+    /// in order to simplify the rendering
+    /// pipeline. Horizontal lines are
+    /// completely removed, while quadratic
+    /// bezier are split in two when the
+    /// curve has a point with a slope of zero,
+    /// with one part only going downwards 
+    /// and the other only upwards.
+    pub fn preprocess(&self) -> Path {
+        todo!()
+    }
 }
 
 impl Shape for Path {
@@ -36,6 +49,12 @@ impl Bezier for Path {
     fn t(&self, t: f32) -> Vec2 {
         let index = (t - 0.00001).floor() as usize;
         return self.data[index].t(t.fract());
+    }
+    
+    // ??
+    fn slope(&self, t: f32) -> f32 {
+        let index = (t - 0.00001).floor() as usize;
+        return self.data[index].slope(t.fract());
     }
     
     fn bb(&self) -> Vec4 {

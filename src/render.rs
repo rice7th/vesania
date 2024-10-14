@@ -25,7 +25,17 @@ impl<'mat, M> Renderer<'mat, M> where M: Shader {
             let mut winding = 0;
             for j in inters {
                 dbg!(j);
-                if self.path.t(j).x > p.x { winding += 1 }
+                if self.path.t(j).x > p.x {
+                    match self.rule {
+                        FillRule::EvenOdd => winding += 1,
+                        FillRule::NonZero => if self.path.slope(j) < 0.0 { // Use Epsilon
+                            winding -= 1;
+                        } else {
+                            winding += 1;
+                        }
+                    }                    
+                }
+                
             }
             if winding % 2 == 1 { *pixel = 1.0 } // For now let's do full coverage
         }

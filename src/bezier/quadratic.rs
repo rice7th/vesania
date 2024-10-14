@@ -38,9 +38,18 @@ impl Bezier for Quadratic {
         // of the function. The funny thing is that I have no idea how
         // to take derivatives :'(
         // For now let's just take the AABB of the control points.
+        // Addendum 14/OCT/2024: I found out the derivative of a bezier
+        // (Yay!) And I can calculate slopes for both curves and lines.
+        // Unfortunately I still have NO IDEA how to derive these myself,
+        // let alone figure out minima and maxima.
         let max = Vec2::max(self.a, Vec2::max(self.b, self.c));
         let min = Vec2::min(self.a, Vec2::min(self.b, self.c));
         return Vec4::from([min.x, min.y, max.x, max.y]);
+    }
+
+    fn slope(&self, t: f32) -> f32 {
+        let q = self.a * (2.0*t - 2.0) + (2.0*self.c - 4.0*self.b)*t + 2.0*self.b;
+        return q.y / q.x;
     }
 }
 
