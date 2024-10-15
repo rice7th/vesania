@@ -44,13 +44,6 @@ fn main() {
             *my_canvas.pixel_at_index(i) = 0xFF0000FF;
         }
     }
-
-    *my_canvas.pixel_at(10, 10)  = 0xFF00FFFF;
-    *my_canvas.pixel_at(50, 50)  = 0xFF00FFFF;
-    *my_canvas.pixel_at(100, 50) = 0xFF00FFFF;
-    *my_canvas.pixel_at(150, 50) = 0xFF00FFFF;
-    *my_canvas.pixel_at(200, 10) = 0xFF00FFFF;
-
     my_canvas.write_to_png("out.png").unwrap();
 }
 

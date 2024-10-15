@@ -37,7 +37,12 @@ impl<'mat, M> Renderer<'mat, M> where M: Shader {
                 }
                 
             }
-            if winding % 2 == 1 { *pixel = 1.0 } // For now let's do full coverage
+            // I'm sure there's a better way to do this
+            // FIXME: Implement AA
+            match self.rule {
+                FillRule::EvenOdd => if winding % 2 == 1 { *pixel = 1.0 },
+                FillRule::NonZero => if winding != 0 { *pixel = 1.0 }
+            }
         }
         return layer;
     }
