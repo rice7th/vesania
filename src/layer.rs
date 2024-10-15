@@ -1,6 +1,6 @@
 use glam::{Vec2, Vec4};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use rgb::Rgba;
+use rgb::{HetPixel, Rgba};
 
 /// # Layer
 /// A Layer is a simple structure that holds
@@ -25,11 +25,18 @@ impl<'mat, M> Layer<'mat, M> where M: Shader {
             coverage: vec![0.0; (size.x * size.y) as usize]
         };
     }
-}
 
-impl<'mat, M> Layer<'mat, M> where M: Shader {
-    pub fn paint(&self) -> Rgba<f32> {
-        todo!("Implement painting wrapper for each pixel");
+    pub fn paint(&self) -> Image {
+        let mut image = Image::new(self.size);
+        self.coverage.iter().enumerate().for_each(|(i, cov)| {
+            if cov == &0.0 { image.push_pixel(Rgba::from([0.0, 0.0, 0.0, 0.0])); } // Skip transparent pixels
+            let x = i as f32 % self.size.x;
+            let y = (i as f32 / self.size.x).floor();
+            let pixel = self.material.fill(x, y, self.size.x, self.size.y);
+            // Premultiply aplha, which is opacity * coverage
+            image.push_pixel(pixel.map_colors_same(|col| col * (pixel.a * cov)));
+        });
+        return image;
     }
 }
 
@@ -67,4 +74,22 @@ impl<'mat, M> Layer<'mat, M> where M: Shader {
 /// type of data.
 pub trait Shader {
     fn fill(&self, _x: f32, _y: f32, _w: f32, _h: f32) -> Rgba<f32>;
+}
+
+pub struct Image {
+    pub size: Vec2,
+    pub pixels: Vec<Rgba<f32>>,
+}
+
+impl Image {
+    pub fn new(size: Vec2) -> Image {
+        return Image {
+            size,
+            pixels: Vec::with_capacity((size.x * size.y) as usize)
+        };
+    }
+
+    pub fn push_pixel(&mut self, pixel: Rgba<f32>) {
+        self.pixels.push(pixel);
+    }
 }
