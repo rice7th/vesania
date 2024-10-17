@@ -8,6 +8,7 @@ use crate::layer::Shader;
 
 /// # Solid Fill
 /// A simple solid color fill.
+#[derive(Debug)]
 pub struct Solid {
     col: Rgba<f32>
 }

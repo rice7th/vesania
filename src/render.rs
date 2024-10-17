@@ -24,7 +24,6 @@ impl<'mat, M> Renderer<'mat, M> where M: Shader {
             let inters = self.path.intersections(p);
             let mut winding = 0;
             for j in inters {
-                dbg!(j);
                 if self.path.t(j).x > p.x {
                     match self.rule {
                         FillRule::EvenOdd => winding += 1,

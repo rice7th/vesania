@@ -1,20 +1,13 @@
 use vesania::bezier::line::Line;
 use vesania::bezier::quadratic::Quadratic;
-use vesania::layer::{Layer, Shader};
+use vesania::fills;
+use vesania::layer::{Image, Layer, Shader};
 use vesania::path::Path;
 use vesania::render::{FillRule, Renderer};
 use vesania::shape::Shape;
 use vesania::bezier::Bezier;
 use glam::Vec2;
-use rgb::Rgba;
-
-#[derive(Debug)]
-struct Mat {}
-impl Shader for Mat {
-    fn fill(&self, _x: f32, _y: f32, _w: f32, _h: f32) -> Rgba<f32> {
-        return Rgba { r: 1.0, g: 1.0, b: 1.0, a: 1.0 }
-    }
-}
+use rgb::{Pixel, Rgba};
 
 fn main() {
     let mut my_canvas = Canvas::new(300, 300);
@@ -34,16 +27,12 @@ fn main() {
         Box::new(quad5), Box::new(quad6), Box::new(quad7), Box::new(quad8),
     ]);
 
-    let my_material = Mat{};
+    let my_material = fills::Solid::new([1.0, 0.0, 1.0, 1.0]);
 
     let rend = Renderer::new(path, Vec2::from([300., 300.]), FillRule::NonZero, &my_material);
     let img = rend.render();
 
-    for (i, pix) in img.coverage.iter().enumerate() {
-        if *pix > 0.0 {
-            *my_canvas.pixel_at_index(i) = 0xFF0000FF;
-        }
-    }
+    my_canvas.image(img.paint());
     my_canvas.write_to_png("out.png").unwrap();
 }
 
@@ -84,5 +73,13 @@ impl<'pix> Canvas {
     pub fn to_be(&mut self) {
         self.buffer.iter_mut()
             .for_each(|pix| *pix = pix.to_be());
+    }
+
+    pub fn image(&mut self, img: Image) {
+        for (i, pix) in self.buffer.iter_mut().enumerate() {
+            *pix = unsafe {
+                std::mem::transmute::<Rgba<u8>, u32>(img.pixels.get(i).unwrap_or(&Rgba { r: 1.0, g: 1.0, b: 1.0, a: 1.0 }).map(|col| (col * 255.0) as u8)).to_be()
+            }
+        }
     }
 }
