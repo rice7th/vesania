@@ -25,9 +25,13 @@ pub trait Bezier: Shape + Debug {
     fn bb(&self) -> Vec4;
 
     /// # Slope
-    /// Get the slope of the curve
-    /// at `t`.
+    /// Get the slope of the curve at `t`.
     fn slope(&self, t: f32) -> f32;
+
+    /// # Split
+    /// Splits the curve at `t` into two
+    /// curves.
+    fn split(&self, t: f32) -> (impl Bezier, impl Bezier);
 }
 
 // bug?

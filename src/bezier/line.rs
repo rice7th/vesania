@@ -33,6 +33,14 @@ impl Bezier for Line {
     fn slope(&self, t: f32) -> f32 {
         return (self.b.y - self.a.y) / (self.b.x - self.a.x);
     }
+
+    fn split(&self, t: f32) -> (Line, Line) {
+        let z = lerp(self.a, self.b, t);
+        return (
+            Line::new(self.a, z),
+            Line::new(z, self.b),
+        )
+    }
 }
 
 impl Shape for Line {

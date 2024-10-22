@@ -51,10 +51,14 @@ impl Bezier for Path {
         return self.data[index].t(t.fract());
     }
     
-    // ??
     fn slope(&self, t: f32) -> f32 {
         let index = (t - 0.00001).floor() as usize;
         return self.data[index].slope(t.fract());
+    }
+
+    fn split(&self, t: f32) -> (impl Bezier, impl Bezier) {
+        let index = (t - 0.00001).floor() as usize;
+        return self.data[index].split(t.fract());
     }
     
     fn bb(&self) -> Vec4 {

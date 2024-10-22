@@ -51,6 +51,17 @@ impl Bezier for Quadratic {
         let q = self.a * (2.0*t - 2.0) + (2.0*self.c - 4.0*self.b)*t + 2.0*self.b;
         return q.y / q.x;
     }
+
+    fn split(&self, t: f32) -> (Quadratic, Quadratic) {
+        let d = lerp(self.a, self.b, t);
+        let e = lerp(self.b, self.c, t);
+        let f = lerp(d, e, t);
+
+        return (
+            Quadratic::new(self.a, d, f),
+            Quadratic::new(f, e, self.b),
+        )
+    }
 }
 
 // TODO: Add Epsilon values because floating point math sucks
