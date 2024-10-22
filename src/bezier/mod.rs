@@ -31,7 +31,7 @@ pub trait Bezier: Shape + Debug {
     /// # Split
     /// Splits the curve at `t` into two
     /// curves.
-    fn split(&self, t: f32) -> (impl Bezier, impl Bezier);
+    fn split(&self, t: f32) -> (Box<dyn Bezier>, Box<dyn Bezier>);
 }
 
 // bug?

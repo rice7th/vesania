@@ -56,7 +56,7 @@ impl Bezier for Path {
         return self.data[index].slope(t.fract());
     }
 
-    fn split(&self, t: f32) -> (impl Bezier, impl Bezier) {
+    fn split(&self, t: f32) -> (Box<dyn Bezier>, Box<dyn Bezier>) {
         let index = (t - 0.00001).floor() as usize;
         return self.data[index].split(t.fract());
     }

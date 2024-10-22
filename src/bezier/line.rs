@@ -34,11 +34,11 @@ impl Bezier for Line {
         return (self.b.y - self.a.y) / (self.b.x - self.a.x);
     }
 
-    fn split(&self, t: f32) -> (Line, Line) {
-        let z = lerp(self.a, self.b, t);
+    fn split(&self, t: f32) -> (Box<dyn Bezier>, Box<dyn Bezier>) {
+        let z = Vec2::new(lerp(self.a.x, self.b.x, t), lerp(self.a.y, self.b.y, t));
         return (
-            Line::new(self.a, z),
-            Line::new(z, self.b),
+            Box::new(Line::new(self.a, z)),
+            Box::new(Line::new(z, self.b)),
         )
     }
 }

@@ -52,14 +52,14 @@ impl Bezier for Quadratic {
         return q.y / q.x;
     }
 
-    fn split(&self, t: f32) -> (Quadratic, Quadratic) {
-        let d = lerp(self.a, self.b, t);
-        let e = lerp(self.b, self.c, t);
-        let f = lerp(d, e, t);
+    fn split(&self, t: f32) -> (Box<dyn Bezier>, Box<dyn Bezier>) {
+        let d = Vec2::new(lerp(self.a.x, self.b.x, t), lerp(self.a.y, self.b.y, t));
+        let e = Vec2::new(lerp(self.b.x, self.c.x, t), lerp(self.b.y, self.c.y, t));
+        let f = Vec2::new(lerp(d.x, e.x, t), lerp(d.y, e.y, t));
 
         return (
-            Quadratic::new(self.a, d, f),
-            Quadratic::new(f, e, self.b),
+            Box::new(Quadratic::new(self.a, d, f)),
+            Box::new(Quadratic::new(f, e, self.b)),
         )
     }
 }
