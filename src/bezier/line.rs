@@ -41,6 +41,11 @@ impl Bezier for Line {
             Box::new(Line::new(z, self.b)),
         )
     }
+
+    fn fix(&self) -> Vec<Box<dyn Bezier>> {
+        if self.a.y == self.b.y { return vec![]; } // Erase the line
+        return vec![Box::new(Line::new(self.a, self.b))];
+    }
 }
 
 impl Shape for Line {

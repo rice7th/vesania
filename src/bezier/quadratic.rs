@@ -1,7 +1,7 @@
 use glam::{Vec2, Vec4};
 use crate::shape::Shape;
 
-use super::{lerp, Bezier};
+use super::{lerp, line::Line, Bezier};
 
 /// # Quadratic Bezier curve
 /// A 2nd degree Bezier curve defined by three
@@ -16,6 +16,15 @@ pub struct Quadratic {
 impl Quadratic {
     pub fn new(a: Vec2, b: Vec2, c: Vec2) -> Quadratic {
         return Quadratic { a, b, c };
+    }
+
+    pub fn is_line(&self) -> bool {
+        if (self.b.y - self.a.y) * (self.c.x - self.b.x)
+        == (self.c.y - self.b.y) * (self.b.x - self.a.x) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
@@ -61,6 +70,29 @@ impl Bezier for Quadratic {
             Box::new(Quadratic::new(self.a, d, f)),
             Box::new(Quadratic::new(f, e, self.b)),
         )
+    }
+
+    fn fix(&self) -> Vec<Box<dyn Bezier>> {
+        // if the control point is either above or below the two other points, the
+        // curve will certainly contain a point with a slope of zero, so we split
+        // the curve in two at that point.
+        if self.b.y > self.bb().w || self.b.y < self.bb().y {
+            let t = (2.0*self.a - 2.0*self.b)/(2.0*self.a - 4.0*self.b + 2.0*self.c);
+            // t is a Vec2. Technically each component should be equal, but y'know,
+            // floating point math sucks.
+            let splitted = self.split(t.x);
+            return vec![splitted.0, splitted.1];
+        } else if self.is_line() {
+            // NOTE: a curve should never be colinear! If it is, maybe the control
+            // point just lies between the other two points.
+            // However, if it is not the case (e.g. the control point is the last one),
+            // then it is an edge case that I am not going to address because
+            // I don't really care; this type of edge case doesn't normally occour.
+            // So I just return a fixed line (imagine if all the points are aligned
+            // to the ray) from a to c, which should be the most common solution.
+            return Line::new(self.a, self.c).fix();
+        }
+        return vec![Box::new(Quadratic::new(self.a, self.b, self.c))];
     }
 }
 

@@ -32,6 +32,19 @@ pub trait Bezier: Shape + Debug {
     /// Splits the curve at `t` into two
     /// curves.
     fn split(&self, t: f32) -> (Box<dyn Bezier>, Box<dyn Bezier>);
+
+    /// # Fix
+    /// Returns either the same curve, a different
+    /// one, nothing or two separate ones, depending
+    /// on which edge case the curve represents.
+    /// Examples include lines that are perfectly
+    /// aligned with a ray (deleted), Quadratic
+    /// beziers that include at least one point with
+    /// a slope of zero (split into two), or a valid
+    /// curve (left as-is).
+    /// The function can also be used to fix broken
+    /// curves, such as wrongly winded ones.
+    fn fix(&self) -> Vec<Box<dyn Bezier>>;
 }
 
 // bug?
