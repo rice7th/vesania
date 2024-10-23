@@ -10,18 +10,18 @@ use glam::Vec2;
 use rgb::{Pixel, Rgba};
 
 fn main() {
-    let mut my_canvas = Canvas::new(300, 300);
+    let mut my_canvas = Canvas::new(3000, 3000);
     my_canvas.fill_with(Rgba::from((255, 255, 255, 255)));
 
-    let quad1 = Quadratic::new([40.0, 10.0].into(), [10.0, 10.0].into(), [10.0, 40.0].into());
-    let quad2 = Quadratic::new([10.0, 40.0].into(), [10.0, 70.0].into(), [40.0, 70.0].into());
-    let quad3 = Quadratic::new([40.0, 70.0].into(), [70.0, 70.0].into(), [70.0, 40.0].into());
-    let quad4 = Quadratic::new([70.0, 40.0].into(), [70.0, 10.0].into(), [40.0, 10.0].into());
+    let quad1 = Quadratic::new([400.0, 100.0].into(), [100.0, 100.0].into(), [100.0, 400.0].into());
+    let quad2 = Quadratic::new([100.0, 400.0].into(), [100.0, 700.0].into(), [400.0, 700.0].into());
+    let quad3 = Quadratic::new([400.0, 700.0].into(), [700.0, 700.0].into(), [700.0, 400.0].into());
+    let quad4 = Quadratic::new([700.0, 400.0].into(), [700.0, 100.0].into(), [400.0, 100.0].into());
 
-    let quad5 = Quadratic::new([50.0, 10.0].into(), [20.0, 10.0].into(), [20.0, 40.0].into());
-    let quad6 = Quadratic::new([20.0, 40.0].into(), [20.0, 70.0].into(), [50.0, 70.0].into());
-    let quad7 = Quadratic::new([50.0, 70.0].into(), [80.0, 70.0].into(), [80.0, 40.0].into());
-    let quad8 = Quadratic::new([80.0, 40.0].into(), [80.0, 10.0].into(), [50.0, 10.0].into());
+    let quad5 = Quadratic::new([500.0, 100.0].into(), [200.0, 100.0].into(), [200.0, 400.0].into());
+    let quad6 = Quadratic::new([200.0, 400.0].into(), [200.0, 700.0].into(), [500.0, 700.0].into());
+    let quad7 = Quadratic::new([500.0, 700.0].into(), [800.0, 700.0].into(), [800.0, 400.0].into());
+    let quad8 = Quadratic::new([800.0, 400.0].into(), [800.0, 100.0].into(), [500.0, 100.0].into());
     let path = Path::new(vec![
         Box::new(quad1), Box::new(quad2), Box::new(quad3), Box::new(quad4),
         Box::new(quad5), Box::new(quad6), Box::new(quad7), Box::new(quad8),
@@ -29,7 +29,7 @@ fn main() {
 
     let my_material = fills::Solid::new([1.0, 0.0, 1.0, 1.0]);
 
-    let rend = Renderer::new(path, Vec2::from([300., 300.]), FillRule::NonZero, &my_material);
+    let rend = Renderer::new(path, Vec2::from([3000., 3000.]), FillRule::NonZero, &my_material);
     let img = rend.render();
 
     my_canvas.image(img.paint());

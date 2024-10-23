@@ -24,22 +24,22 @@ impl<'mat, M> Renderer<'mat, M> where M: Shader {
             let inters = self.path.intersections(p);
             let mut winding = 0;
             for j in inters {
-                if self.path.t(j).x > p.x {
+                let point = self.path.t(j).x;
+                if point >= p.x {
                     match self.rule {
                         FillRule::EvenOdd => winding += 1,
-                        FillRule::NonZero => if self.path.slope(j) < 0.0 { // Use Epsilon
+                        FillRule::NonZero => if self.path.slope(j) <= 0.0 { // Use Epsilon
                             winding -= 1;
                         } else {
                             winding += 1;
                         }
-                    }                    
+                    }
                 }
-                
             }
             // I'm sure there's a better way to do this
             // FIXME: Implement AA
             match self.rule {
-                FillRule::EvenOdd => if winding % 2 == 1 { *pixel = 1.0 },
+                FillRule::EvenOdd => if winding % 2 == 1 { *pixel = 1.0; },
                 FillRule::NonZero => if winding != 0 { *pixel = 1.0 }
             }
         }
