@@ -12,7 +12,10 @@
     - [ ] Outside
 - [ ] New fill operations
     - [ ] Linear gradient
-    - [ ] Radial gradient with custom center
+    - [x] Radial gradient with custom center
+    - [ ] Angular gradient
+    - [ ] Mesh gradient
+    - [ ] Other weird gradients
 - [ ] Path operations
     - [ ] Union
     - [ ] Difference

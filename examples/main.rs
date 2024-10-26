@@ -22,12 +22,22 @@ fn main() {
     let quad6 = Quadratic::new([20.0, 40.0].into(), [20.0, 70.0].into(), [50.0, 70.0].into());
     let quad7 = Quadratic::new([50.0, 70.0].into(), [80.0, 70.0].into(), [80.0, 40.0].into());
     let quad8 = Quadratic::new([80.0, 40.0].into(), [80.0, 10.0].into(), [50.0, 10.0].into());
+
+    dbg!(quad1.slope(0.5));
+    dbg!(quad2.slope(0.5));
+    dbg!(quad3.slope(0.5));
+    dbg!(quad4.slope(0.5));
+    dbg!(quad5.slope(0.5));
+    dbg!(quad6.slope(0.5));
+    dbg!(quad7.slope(0.5));
+    dbg!(quad8.slope(0.5));
     let path = Path::new(vec![
         Box::new(quad1), Box::new(quad2), Box::new(quad3), Box::new(quad4),
-        Box::new(quad5), Box::new(quad6), Box::new(quad7), Box::new(quad8),
+        //Box::new(quad5), Box::new(quad6), Box::new(quad7), Box::new(quad8),
     ]);
 
-    let my_material = fills::Solid::new([1.0, 0.0, 1.0, 1.0]);
+    //let my_material = fills::Radial::new([0.1, 1.0, 1.0, 1.0], [0.4, 1.0, 0.2, 1.0], [0.1, 0.1], 0.2);
+    let my_material = fills::Radial::new([1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 1.0], [0.1, 0.1], 0.2);
 
     let rend = Renderer::new(path, Vec2::from([300., 300.]), FillRule::NonZero, &my_material);
     let img = rend.render();

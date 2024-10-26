@@ -11,6 +11,11 @@ impl Path {
     pub fn new(path: Vec<Box<dyn Bezier>>) -> Path {
         return Path { data: path }
     }
+
+    pub fn get_curve_at_t(&self, t: f32) -> &Box<dyn Bezier> {
+        let index = (t - 0.00001).floor() as usize;
+        return &self.data[index];
+    }
 }
 
 impl Shape for Path {

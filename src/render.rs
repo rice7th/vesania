@@ -1,3 +1,5 @@
+use core::f32;
+
 use glam::Vec2;
 
 use crate::{layer::{Layer, Shader}, path::Path, shape::Shape, bezier::Bezier};
@@ -17,18 +19,37 @@ impl<'mat, M> Renderer<'mat, M> where M: Shader {
 
     // TODO: use SIMD and a lot of threads
     // TODO: Split into scanlines
+    // NOTE: 
     pub fn render(&self) -> Layer<M> {
         let mut layer = Layer::new(self.size, self.material);
         for (i, pixel) in layer.coverage.iter_mut().enumerate() {
             let p = Vec2::from([i as f32 % layer.size.x, (i as f32 / layer.size.y).floor()]);
-            let inters = self.path.intersections(p);
+            // If a ray hits a point shared between two curves, we decide wether the intersection
+            // counts twice (different winding direction) or once (same winding direction).
+            let mut last = f32::NAN;
+            let raw_inters = self.path.intersections(p);
+            let mut inters = Vec::new();
+            for i in raw_inters.iter() {
+                last;
+                let prev = self.path.get_curve_at_t(last.floor() - 0.5).slope(0.5);
+                let next = self.path.get_curve_at_t(last.floor() + 0.5).slope(0.5);
+                if last == *i || last < (*i + 0.001) || last > (*i - 0.001) { // Or close enough
+                    if prev.signum() == next.signum() {
+                        continue;
+                    }
+                }
+                last = *i;
+                inters.push(last);
+            };
             let mut winding = 0;
             for j in inters {
                 let point = self.path.t(j).x;
-                if point >= p.x {
+                
+                if point <= p.x {
                     match self.rule {
                         FillRule::EvenOdd => winding += 1,
-                        FillRule::NonZero => if self.path.slope(j) <= 0.0 { // Use Epsilon
+                        FillRule::NonZero =>
+                        if self.path.get_curve_at_t(j.floor() + 0.5).slope(0.5) < 0.0 { // Use Epsilon
                             winding -= 1;
                         } else {
                             winding += 1;
