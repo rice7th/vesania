@@ -30,8 +30,19 @@ impl Bezier for Line {
         )
     }
 
-    fn slope(&self, t: f32) -> f32 {
-        return (self.b.y - self.a.y) / (self.b.x - self.a.x);
+    fn derivative(&self, t: f32) -> Vec2 {
+        return Vec2::from([
+            self.b.x - self.a.x,
+            self.b.y - self.a.y
+        ])
+    }
+
+    fn second_derivative(&self, _: f32) -> Vec2 {
+        return Vec2::splat(0.);
+    }
+
+    fn curvature(&self, t: f32) -> f32 {
+        return 0.; // a line is always flat. No need to calculate this.
     }
 
     fn split(&self, t: f32) -> (Box<dyn Bezier>, Box<dyn Bezier>) {
@@ -45,6 +56,10 @@ impl Bezier for Line {
     fn fix(&self) -> Vec<Box<dyn Bezier>> {
         if self.a.y == self.b.y { return vec![]; } // Erase the line
         return vec![Box::new(Line::new(self.a, self.b))];
+    }
+
+    fn parallel(&self, dist: f32) -> Vec<Box<dyn Bezier>> {
+        todo!()
     }
 }
 

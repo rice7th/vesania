@@ -1,4 +1,4 @@
-use glam::{Vec2, Vec4};
+use glam::{Mat2, Vec2, Vec4};
 use crate::shape::Shape;
 
 use super::{lerp, line::Line, Bezier};
@@ -56,9 +56,16 @@ impl Bezier for Quadratic {
         return Vec4::from([min.x, min.y, max.x, max.y]);
     }
 
-    fn slope(&self, t: f32) -> f32 {
-        let q = self.a * (2.0*t - 2.0) + (2.0*self.c - 4.0*self.b)*t + 2.0*self.b;
-        return q.y / q.x;
+    fn derivative(&self, t: f32) -> Vec2 {
+        return self.a * (2.0*t - 2.0) + (2.0*self.c - 4.0*self.b)*t + 2.0*self.b;
+    }
+
+    fn second_derivative(&self, _: f32) -> Vec2 {
+        return 2.0*(self.c - 2.0*self.b + self.a);
+    }
+
+    fn parallel(&self, dist: f32) -> Vec<Box<dyn Bezier>> {
+        todo!()
     }
 
     fn split(&self, t: f32) -> (Box<dyn Bezier>, Box<dyn Bezier>) {

@@ -39,18 +39,23 @@ impl Shape for Path {
 
 impl Bezier for Path {
     fn t(&self, t: f32) -> Vec2 {
-        let index = (t - 0.00001).floor() as usize;
-        return self.data[index].t(t.fract());
+        return self.get_curve_at_t(t).t(t);
     }
-    
-    fn slope(&self, t: f32) -> f32 {
-        let index = (t - 0.00001).floor() as usize;
-        return self.data[index].slope(t.fract());
+
+    fn derivative(&self, t: f32) -> Vec2 {
+        return self.get_curve_at_t(t).derivative(t);
+    }
+
+    fn second_derivative(&self, t: f32) -> Vec2 {
+        return self.get_curve_at_t(t).second_derivative(t);
+    }
+
+    fn parallel(&self, dist: f32) -> Vec<Box<dyn Bezier>> {
+        todo!("Not yet implemented")
     }
 
     fn split(&self, t: f32) -> (Box<dyn Bezier>, Box<dyn Bezier>) {
-        let index = (t - 0.00001).floor() as usize;
-        return self.data[index].split(t.fract());
+        return self.get_curve_at_t(t).split(t);
     }
     
     fn bb(&self) -> Vec4 {

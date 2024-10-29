@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use glam::{Vec2, Vec4};
+use glam::{Mat2, Vec2, Vec4};
 
 use crate::shape::Shape;
 
@@ -24,9 +24,43 @@ pub trait Bezier: Shape + Debug {
     /// Get the AABB of the curve.
     fn bb(&self) -> Vec4;
 
+    /// # Derivative
+    /// Get the first derivative of a curve at `t`.
+    fn derivative(&self, t: f32) -> Vec2;
+
+    /// # Second Derivative
+    /// Get the second derivative of a curve at `t`.
+    fn second_derivative(&self, t: f32) -> Vec2;
+
     /// # Slope
     /// Get the slope of the curve at `t`.
-    fn slope(&self, t: f32) -> f32;
+    fn slope(&self, t: f32) -> f32 {
+        let d = self.derivative(t);
+        return d.y / d.x;
+    }
+
+    /// # Normal
+    /// Get the normal vector at `t`.
+    fn normal(&self, t: f32) -> Vec2 {
+        let d = self.derivative(t);
+        let q = d.length();
+        return Vec2::new(d.y / q, -d.x / q);
+    }
+
+    /// # Curvature
+    /// Get the curvature of the curve at `t`.
+    fn curvature(&self, t: f32) -> f32 {
+        let first = self.derivative(t);
+        let second = self.second_derivative(t);
+        let velocity = first.length();
+        return Mat2::from_cols(first, second).determinant() / (velocity * velocity * velocity);
+    }
+
+    /// # Parallel
+    /// get the parallel curve of the Bezier.
+    /// The Bezier may be split in more than one
+    /// piece for better approximations.
+    fn parallel(&self, dist: f32) -> Vec<Box<dyn Bezier>>;
 
     /// # Split
     /// Splits the curve at `t` into two
