@@ -56,6 +56,14 @@ impl Bezier for Quadratic {
         return Vec4::from([min.x, min.y, max.x, max.y]);
     }
 
+    fn first_point(&self) -> &Vec2 {
+        &self.a
+    }
+
+    fn last_point(&self) -> &Vec2 {
+        &self.c
+    }
+
     fn derivative(&self, t: f32) -> Vec2 {
         return self.a * (2.0*t - 2.0) + (2.0*self.c - 4.0*self.b)*t + 2.0*self.b;
     }

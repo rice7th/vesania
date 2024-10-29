@@ -42,6 +42,14 @@ impl Bezier for Path {
         return self.get_curve_at_t(t).t(t);
     }
 
+    fn first_point(&self) -> &Vec2 {
+        return self.data.first().unwrap().first_point();
+    }
+
+    fn last_point(&self) -> &Vec2 {
+        return self.data.last().unwrap().last_point();
+    }
+
     fn derivative(&self, t: f32) -> Vec2 {
         return self.get_curve_at_t(t).derivative(t);
     }

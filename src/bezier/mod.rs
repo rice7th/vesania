@@ -7,6 +7,11 @@ use crate::shape::Shape;
 pub mod quadratic;
 pub mod line;
 
+#[derive(Debug)]
+pub enum Direction {
+    Up, Down
+}
+
 /// # Bezier
 /// This trait provides common interfaces for various
 /// types of bezier curves. By default only Line and
@@ -55,6 +60,38 @@ pub trait Bezier: Shape + Debug {
         let velocity = first.length();
         return Mat2::from_cols(first, second).determinant() / (velocity * velocity * velocity);
     }
+
+    /// # Direction
+    /// Get the direction of the curve.
+    /// This method differs from slope since
+    /// it depends on the position of the starting
+    /// and ending points of the curve rather than
+    /// its derivative. Thus, the same curve can have
+    /// two different directions based on the order
+    /// of its points.
+    /// 
+    // NOTE: After fixing the curve, the curve start
+    // and end points are *guaranteed* to have
+    // different heights.
+    fn direction(&self) -> Direction {
+        if self.first_point().y < self.last_point().y {
+            Direction::Up
+        } else {
+            Direction::Down
+        }
+    }
+
+    // Very hand function for easy direction implementation.
+
+    /// # First
+    /// Get first point of a curve.
+    /// The first point is always `self.a` for builtin
+    /// beziers.
+    fn first_point(&self) -> &Vec2;
+
+    /// # Last
+    /// Get last point of a curve;
+    fn last_point(&self) -> &Vec2;
 
     /// # Parallel
     /// get the parallel curve of the Bezier.

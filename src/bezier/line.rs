@@ -30,6 +30,14 @@ impl Bezier for Line {
         )
     }
 
+    fn first_point(&self) -> &Vec2 {
+        &self.a
+    }
+
+    fn last_point(&self) -> &Vec2 {
+        &self.b
+    }
+
     fn derivative(&self, t: f32) -> Vec2 {
         return Vec2::from([
             self.b.x - self.a.x,

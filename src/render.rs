@@ -2,7 +2,7 @@ use core::f32;
 
 use glam::Vec2;
 
-use crate::{layer::{Layer, Shader}, path::Path, shape::Shape, bezier::Bezier};
+use crate::{bezier::{Bezier, Direction}, layer::{Layer, Shader}, path::Path, shape::Shape};
 
 #[derive(Debug)]
 pub struct Renderer<'mat, M: Shader> {
@@ -48,11 +48,9 @@ impl<'mat, M> Renderer<'mat, M> where M: Shader {
                 if point <= p.x {
                     match self.rule {
                         FillRule::EvenOdd => winding += 1,
-                        FillRule::NonZero =>
-                        if self.path.get_curve_at_t(j.floor() + 0.5).slope(0.5) < 0.0 { // Use Epsilon
-                            winding -= 1;
-                        } else {
-                            winding += 1;
+                        FillRule::NonZero => match self.path.get_curve_at_t(j.floor()).direction() {
+                            Direction::Up   => winding += 1,
+                            Direction::Down => winding -= 1,
                         }
                     }
                 }
