@@ -51,8 +51,8 @@ impl Bezier for Quadratic {
         // (Yay!) And I can calculate slopes for both curves and lines.
         // Unfortunately I still have NO IDEA how to derive these myself,
         // let alone figure out minima and maxima.
-        let max = Vec2::max(self.a, Vec2::max(self.b, self.c)) + 0.5;
-        let min = Vec2::min(self.a, Vec2::min(self.b, self.c)) - 0.5;
+        let max = Vec2::max(self.a, Vec2::max(self.b, self.c)) + 1.;
+        let min = Vec2::min(self.a, Vec2::min(self.b, self.c)) - 1.;
         return Vec4::from([min.x, min.y, max.x, max.y]);
     }
 

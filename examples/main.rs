@@ -23,16 +23,18 @@ fn main() {
     let quad7 = Quadratic::new([50.0, 70.0].into(), [80.0, 70.0].into(), [80.0, 40.0].into());
     let quad8 = Quadratic::new([80.0, 40.0].into(), [80.0, 10.0].into(), [50.0, 10.0].into());
 
-    dbg!(quad1.slope(0.5));
-    dbg!(quad2.slope(0.5));
-    dbg!(quad3.slope(0.5));
-    dbg!(quad4.slope(0.5));
-    dbg!(quad5.slope(0.5));
-    dbg!(quad6.slope(0.5));
-    dbg!(quad7.slope(0.5));
-    dbg!(quad8.slope(0.5));
+    dbg!(quad1.direction());
+    dbg!(quad2.direction());
+    dbg!(quad3.direction());
+    dbg!(quad4.direction());
+
+    dbg!(quad1.intersections(Vec2::from([1., 23.])));
+
     let path = Path::new(vec![
-        Box::new(quad1), Box::new(quad2), Box::new(quad3), Box::new(quad4),
+        Box::new(quad1),
+        Box::new(quad2),
+        Box::new(quad3),
+        Box::new(quad4),
         //Box::new(quad5), Box::new(quad6), Box::new(quad7), Box::new(quad8),
     ]);
 
@@ -44,6 +46,7 @@ fn main() {
 
     my_canvas.image(img.paint());
     my_canvas.write_to_png("out.png").unwrap();
+    
 }
 
 pub struct Canvas {

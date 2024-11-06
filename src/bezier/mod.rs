@@ -7,7 +7,7 @@ use crate::shape::Shape;
 pub mod quadratic;
 pub mod line;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, PartialOrd)]
 pub enum Direction {
     Up, Down
 }

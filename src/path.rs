@@ -13,7 +13,11 @@ impl Path {
     }
 
     pub fn get_curve_at_t(&self, t: f32) -> &Box<dyn Bezier> {
-        let index = (t - 0.00001).floor() as usize;
+        let mut index = (t - 0.0001).floor() as usize;
+        if index < 0 { index = 0; }
+        if index > self.data.len() - 1 {
+            index = self.data.len() - 1
+        }
         return &self.data[index];
     }
 }
@@ -39,7 +43,7 @@ impl Shape for Path {
 
 impl Bezier for Path {
     fn t(&self, t: f32) -> Vec2 {
-        return self.get_curve_at_t(t).t(t);
+        return self.get_curve_at_t(t).t(t.fract());
     }
 
     fn first_point(&self) -> &Vec2 {
