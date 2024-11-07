@@ -134,9 +134,12 @@ impl Shape for Quadratic {
         let t1 = (-b + delta.sqrt()) / (2.0 * a);
         let t2 = (-b - delta.sqrt()) / (2.0 * a);
 
+        let t1 = if t1 == 1.0 { 1.0 - 0.001 } else { t1 };
+        let t2 = if t2 == 1.0 { 1.0 - 0.001 } else { t2 };
+
         if t1 <= 1.0 && t1 >= 0.0 { inters.push(t1) }
         if t2 <= 1.0 && t2 >= 0.0 { inters.push(t2) }
-
+        
         return inters;
     }
 }

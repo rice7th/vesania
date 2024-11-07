@@ -31,54 +31,33 @@ impl<'mat, M> Renderer<'mat, M> where M: Shader {
                 // counts twice (different winding direction) or once (same winding direction).
                 let mut last = f32::NAN;
                 let raw_inters = self.path.intersections(p);
-                for i in raw_inters.iter() {
-                    let prev = self.path.get_curve_at_t(last.floor() - 0.01).direction();
-                    let next = self.path.get_curve_at_t(last.floor() + 0.01).direction();
-                    dbg!(raw_inters.len());
-                    dbg!(&prev);
-                    dbg!(&next);
-                    if last == *i || last < (*i + 0.001) && last > (*i - 0.001) { // Or close enough
+                for curr in raw_inters.iter() {
+                    if last == *curr || last <= (*curr + f32::EPSILON) && last >= (*curr - f32::EPSILON) { // Or close enough
+                        let prev = self.path.get_curve_at_t(last.floor()).direction();
+                        let next = self.path.get_curve_at_t(curr.floor()).direction();
                         if prev == next {
                             continue;
                         }
-                    } else {
-                        last = *i;
-                        inters.push(*i);
                     }
+                    last = *curr;
+                    inters.push((*curr, self.path.get_curve_at_t(*curr).direction()));
                 };
-            }
-
-            dbg!(p);
-            dbg!(index / self.size.x as usize);
-            dbg!(&inters);
-            for j in &inters {
-                dbg!(1.0f32.floor());
-                dbg!(*j);
-                println!("Expected: {:?}", self.path.get_curve_at_t(j.floor() + 0.5).direction());
-                println!("Got: {:?}", self.path.get_curve_at_t(*j).direction());
-                assert!(self.path.get_curve_at_t(j.floor() + 0.5).direction() == self.path.get_curve_at_t(*j + 0.001).direction());
-                dbg!(self.path.t(*j).x);
-            }
-
-            dbg!("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
-            
+            }            
 
             let mut winding = 0;
-            for j in &inters {
-                let i = if j.fract() == 0.0 && *j > 0.0 {
-                    *j - f32::EPSILON
-                } else { *j };
-                let int = self.path.t(i).x;
+            for (int, dir) in &inters {
+                let int = self.path.t(*int).x;
                 if int <= p.x {
                     match self.rule {
                         FillRule::EvenOdd => winding += 1,
-                        FillRule::NonZero => match self.path.get_curve_at_t(j + 0.001).direction() {
+                        FillRule::NonZero => match dir {
                             Direction::Up   => winding += 1,
                             Direction::Down => winding -= 1,
                         }
                     }
                 }
             }
+            
             // I'm sure there's a better way to do this
             // FIXME: Implement AA
             match self.rule {

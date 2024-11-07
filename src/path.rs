@@ -13,8 +13,7 @@ impl Path {
     }
 
     pub fn get_curve_at_t(&self, t: f32) -> &Box<dyn Bezier> {
-        let mut index = (t - 0.0001).floor() as usize;
-        if index < 0 { index = 0; }
+        let mut index = (t).floor() as usize;
         if index > self.data.len() - 1 {
             index = self.data.len() - 1
         }
@@ -43,6 +42,7 @@ impl Shape for Path {
 
 impl Bezier for Path {
     fn t(&self, t: f32) -> Vec2 {
+        let t = if t > 0.0 { t - 0.01 } else { t };
         return self.get_curve_at_t(t).t(t.fract());
     }
 
