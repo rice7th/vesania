@@ -1,9 +1,11 @@
+use std::sync::Arc;
+
 use glam::{Vec2, Vec4};
 use crate::shape::Shape;
 
 use super::{lerp, Bezier};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Line {
     a: Vec2,
     b: Vec2
@@ -53,21 +55,28 @@ impl Bezier for Line {
         return 0.; // a line is always flat. No need to calculate this.
     }
 
-    fn split(&self, t: f32) -> (Box<dyn Bezier>, Box<dyn Bezier>) {
+    fn split(&self, t: f32) -> Vec<Arc<dyn Bezier>> {
         let z = Vec2::new(lerp(self.a.x, self.b.x, t), lerp(self.a.y, self.b.y, t));
-        return (
-            Box::new(Line::new(self.a, z)),
-            Box::new(Line::new(z, self.b)),
-        )
+        return vec![
+            Arc::new(Line::new(self.a, z)),
+            Arc::new(Line::new(z, self.b)),
+        ]
     }
 
-    fn fix(&self) -> Vec<Box<dyn Bezier>> {
+    fn fix(&self) -> Vec<Arc<dyn Bezier>> {
         if self.a.y == self.b.y { return vec![]; } // Erase the line
-        return vec![Box::new(Line::new(self.a, self.b))];
+        return vec![Arc::new(Line::new(self.a, self.b))];
     }
 
-    fn parallel(&self, dist: f32) -> Vec<Box<dyn Bezier>> {
-        todo!()
+    fn parallel(&self, dist: f32) -> Vec<Arc<dyn Bezier>> {
+        return vec![self.trans_ctrl_poly(dist)];
+    }
+
+    fn trans_ctrl_poly(&self, dist: f32) -> Arc<dyn Bezier> {
+        return Arc::new(Line::new(
+            self.a + dist*self.normal(0.),
+            self.b + dist*self.normal(1.),
+        ));
     }
 }
 

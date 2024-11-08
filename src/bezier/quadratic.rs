@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use glam::{Mat2, Vec2, Vec4};
 use crate::shape::Shape;
 
@@ -6,7 +8,7 @@ use super::{lerp, line::Line, Bezier};
 /// # Quadratic Bezier curve
 /// A 2nd degree Bezier curve defined by three
 /// point, named `a`, `b` and `c`.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Quadratic {
     a: Vec2,
     b: Vec2,
@@ -72,22 +74,62 @@ impl Bezier for Quadratic {
         return 2.0*(self.c - 2.0*self.b + self.a);
     }
 
-    fn parallel(&self, dist: f32) -> Vec<Box<dyn Bezier>> {
-        todo!()
+    fn trans_ctrl_poly(&self, dist: f32) -> Arc<dyn Bezier> {
+        let n = self.normal(0.) + self.normal(1.);
+        return Arc::new(Quadratic {
+            a: self.a + dist*self.normal(0.),
+            b: self.b + (2.*dist*n) / Vec2::dot(n, n),
+            c: self.c + dist*self.normal(1.),
+        });
     }
 
-    fn split(&self, t: f32) -> (Box<dyn Bezier>, Box<dyn Bezier>) {
+
+    // Adapted from Blend2D's algortithm.
+    // https://blend2d.com/research/precise_offset_curves.pdf
+    fn parallel(&self, dist: f32) -> Vec<Arc<dyn Bezier>> {
+        let mut out = vec![];
+        let mut curve = vec![];
+        let a = 2.0*self.a + 2.0*self.c - 4.0*self.b;
+        let b = -2.0*self.a + 2.0*self.b;
+        let cbrt = f32::cbrt((b.x*a.y*dist - a.x*b.y*dist) * (b.x*a.y*dist - a.x*b.y*dist));
+        let root = (2.0*a.x*a.y*b.x*b.y
+            - a.x*a.x*b.y*b.y + a.x*a.x*cbrt
+            - b.x*b.x*a.y*a.y + a.y*a.y*cbrt).sqrt();
+        let t1 = (-(a.x*b.x + a.y*b.y) + root) / (a.x*a.x + a.y*a.y);
+        let t2 = (-(a.x*b.x + a.y*b.y) - root) / (a.x*a.x + a.y*a.y);
+
+        if t1 > 0.0 && t1 < 1.0 { curve.extend(self.split(t1)) }
+        if t2 > 0.0 && t2 < 1.0 { curve.extend(self.split(t2)) }
+
+        for segment in curve {
+            let mut cc = segment;
+            loop {
+                const PHI: f32 = 1.0;
+                let m = f32::tan(PHI);
+                let ts = (m * (b.x*b.x + b.y*b.y)) / (f32::abs(a.x*b.y - a.y*b.x) - m * (a.x*b.x + a.y*b.y));
+                if ts > 0.0 && ts < 1.0 {
+                    let splitted = cc.split(ts);
+                    out.push(splitted[0].trans_ctrl_poly(dist));
+                    cc = splitted[1].clone();
+                } else { break };
+            }
+            out.push(cc.trans_ctrl_poly(dist));
+        }
+        return out;
+    }
+
+    fn split(&self, t: f32) -> Vec<Arc<dyn Bezier>> {
         let d = Vec2::new(lerp(self.a.x, self.b.x, t), lerp(self.a.y, self.b.y, t));
         let e = Vec2::new(lerp(self.b.x, self.c.x, t), lerp(self.b.y, self.c.y, t));
         let f = Vec2::new(lerp(d.x, e.x, t), lerp(d.y, e.y, t));
 
-        return (
-            Box::new(Quadratic::new(self.a, d, f)),
-            Box::new(Quadratic::new(f, e, self.b)),
-        )
+        return vec![
+            Arc::new(Quadratic::new(self.a, d, f)),
+            Arc::new(Quadratic::new(f, e, self.b)),
+        ]
     }
 
-    fn fix(&self) -> Vec<Box<dyn Bezier>> {
+    fn fix(&self) -> Vec<Arc<dyn Bezier>> {
         // if the control point is either above or below the two other points, the
         // curve will certainly contain a point with a slope of zero, so we split
         // the curve in two at that point.
@@ -95,8 +137,7 @@ impl Bezier for Quadratic {
             let t = (2.0*self.a - 2.0*self.b)/(2.0*self.a - 4.0*self.b + 2.0*self.c);
             // t is a Vec2. Technically each component should be equal, but y'know,
             // floating point math sucks.
-            let splitted = self.split(t.x);
-            return vec![splitted.0, splitted.1];
+            return self.split(t.x);
         } else if self.is_line() {
             // NOTE: a curve should never be colinear! If it is, maybe the control
             // point just lies between the other two points.
@@ -107,7 +148,7 @@ impl Bezier for Quadratic {
             // to the ray) from a to c, which should be the most common solution.
             return Line::new(self.a, self.c).fix();
         }
-        return vec![Box::new(Quadratic::new(self.a, self.b, self.c))];
+        return vec![Arc::new(Quadratic::new(self.a, self.b, self.c))];
     }
 }
 
@@ -139,7 +180,7 @@ impl Shape for Quadratic {
 
         if t1 <= 1.0 && t1 >= 0.0 { inters.push(t1) }
         if t2 <= 1.0 && t2 >= 0.0 { inters.push(t2) }
-        
+
         return inters;
     }
 }

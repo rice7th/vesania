@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-
+use std::sync::Arc;
 use glam::{Mat2, Vec2, Vec4};
 
 use crate::shape::Shape;
@@ -97,12 +97,19 @@ pub trait Bezier: Shape + Debug {
     /// get the parallel curve of the Bezier.
     /// The Bezier may be split in more than one
     /// piece for better approximations.
-    fn parallel(&self, dist: f32) -> Vec<Box<dyn Bezier>>;
+    fn parallel(&self, dist: f32) -> Vec<Arc<dyn Bezier>>;
+
+    /// # Translate Control Polygon
+    /// Similar to parallel, but much less precise.
+    /// This method translates the control polygon
+    /// along its normals, giving a rough approximation
+    /// of the parallel curve. Extremely useful for
+    /// the actual parallel curve calculation.
+    fn trans_ctrl_poly(&self, dist: f32) -> Arc<dyn Bezier>;
 
     /// # Split
-    /// Splits the curve at `t` into two
-    /// curves.
-    fn split(&self, t: f32) -> (Box<dyn Bezier>, Box<dyn Bezier>);
+    /// Splits the curve at `t` into multiple curves.
+    fn split(&self, t: f32) -> Vec<Arc<dyn Bezier>>;
 
     /// # Fix
     /// Returns either the same curve, a different
@@ -115,7 +122,7 @@ pub trait Bezier: Shape + Debug {
     /// curve (left as-is).
     /// The function can also be used to fix broken
     /// curves, such as wrongly winded ones.
-    fn fix(&self) -> Vec<Box<dyn Bezier>>;
+    fn fix(&self) -> Vec<Arc<dyn Bezier>>;
 }
 
 // bug?

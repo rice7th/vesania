@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use glam::{Vec2, Vec4, Vec4Swizzles};
 
 use crate::{bezier::Bezier, shape::Shape};
@@ -46,6 +48,10 @@ impl Bezier for Path {
         return self.get_curve_at_t(t).t(t.fract());
     }
 
+    fn trans_ctrl_poly(&self, _dist: f32) -> Arc<dyn Bezier> {
+        panic!("You can't translate the control polygon of a whole path yet!");
+    }
+
     fn first_point(&self) -> &Vec2 {
         return self.data.first().unwrap().first_point();
     }
@@ -62,11 +68,15 @@ impl Bezier for Path {
         return self.get_curve_at_t(t).second_derivative(t);
     }
 
-    fn parallel(&self, dist: f32) -> Vec<Box<dyn Bezier>> {
-        todo!("Not yet implemented")
+    fn parallel(&self, dist: f32) -> Vec<Arc<dyn Bezier>> {
+        let mut parallel = vec![];
+        for curve in self.data.iter() {
+            parallel.extend(curve.parallel(dist));
+        }
+        return parallel;
     }
 
-    fn split(&self, t: f32) -> (Box<dyn Bezier>, Box<dyn Bezier>) {
+    fn split(&self, t: f32) -> Vec<Arc<dyn Bezier>> {
         return self.get_curve_at_t(t).split(t);
     }
     
@@ -83,7 +93,7 @@ impl Bezier for Path {
         return Vec4::from([min.x, min.y, max.x, max.y]);
     }
 
-    fn fix(&self) -> Vec<Box<dyn Bezier>> {
+    fn fix(&self) -> Vec<Arc<dyn Bezier>> {
         let mut new_path = vec![];
         for curve in self.data.iter() {
             new_path.extend(curve.fix());
