@@ -1,5 +1,4 @@
 use std::sync::Arc;
-
 use glam::{Vec2, Vec4};
 use crate::shape::Shape;
 

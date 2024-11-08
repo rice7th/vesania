@@ -86,6 +86,7 @@ impl Bezier for Quadratic {
 
     // Adapted from Blend2D's algortithm.
     // https://blend2d.com/research/precise_offset_curves.pdf
+    // FIXME: Maybe Arc<dyn Bezier> was better but whatever
     fn parallel(&self, dist: f32) -> Vec<Arc<dyn Bezier>> {
         let mut out = vec![];
         let mut curve = vec![];
@@ -137,6 +138,7 @@ impl Bezier for Quadratic {
             let t = (2.0*self.a - 2.0*self.b)/(2.0*self.a - 4.0*self.b + 2.0*self.c);
             // t is a Vec2. Technically each component should be equal, but y'know,
             // floating point math sucks.
+            assert!(t.x == t.y);
             return self.split(t.x);
         } else if self.is_line() {
             // NOTE: a curve should never be colinear! If it is, maybe the control

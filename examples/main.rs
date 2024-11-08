@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use vesania::bezier::line::Line;
 use vesania::bezier::quadratic::Quadratic;
 use vesania::fills;
@@ -23,15 +24,10 @@ fn main() {
     let quad7 = Quadratic::new([50.0, 70.0].into(), [80.0, 70.0].into(), [80.0, 40.0].into());
     let quad8 = Quadratic::new([80.0, 40.0].into(), [80.0, 10.0].into(), [50.0, 10.0].into());
 
-    let quad = Quadratic::new([10.0, 10.0].into(), [150.0, 400.0].into(), [290.0, 10.0].into());
+    let quad = Quadratic::new([10.0, 10.0].into(), [150.0, 400.0].into(), [290.0, 10.0].into()).fix();
 
-    let path = Path::new(vec![
-        Box::new(quad1),
-        //Box::new(quad2),
-        //Box::new(quad3),
-        //Box::new(quad4),
-        //Box::new(quad5), Box::new(quad6), Box::new(quad7), Box::new(quad8),
-    ]);
+    //let path = Path::new(vec![Arc::new(quad1)]);
+    let path = Path::new(quad1.parallel(1.0));
 
     //let my_material = fills::Radial::new([0.1, 1.0, 1.0, 1.0], [0.4, 1.0, 0.2, 1.0], [0.1, 0.1], 0.2);
     let my_material = fills::Radial::new([1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 1.0], [0.1, 0.1], 0.2);

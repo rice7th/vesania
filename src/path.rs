@@ -1,20 +1,19 @@
 use std::sync::Arc;
-
 use glam::{Vec2, Vec4, Vec4Swizzles};
 
 use crate::{bezier::Bezier, shape::Shape};
 
 #[derive(Debug)]
 pub struct Path {
-    data: Vec<Box<dyn Bezier>>
+    data: Vec<Arc<dyn Bezier>>
 }
 
 impl Path {
-    pub fn new(path: Vec<Box<dyn Bezier>>) -> Path {
+    pub fn new(path: Vec<Arc<dyn Bezier>>) -> Path {
         return Path { data: path }
     }
 
-    pub fn get_curve_at_t(&self, t: f32) -> &Box<dyn Bezier> {
+    pub fn get_curve_at_t(&self, t: f32) -> &Arc<dyn Bezier> {
         let mut index = (t).floor() as usize;
         if index > self.data.len() - 1 {
             index = self.data.len() - 1

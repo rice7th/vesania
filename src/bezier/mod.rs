@@ -1,5 +1,5 @@
-use std::fmt::Debug;
 use std::sync::Arc;
+use std::fmt::Debug;
 use glam::{Mat2, Vec2, Vec4};
 
 use crate::shape::Shape;
@@ -25,7 +25,7 @@ pub trait Bezier: Shape + Debug {
     /// other number.
     fn t(&self, t: f32) -> Vec2;
     
-    /// # Bounding Box
+    /// # Bounding Arc
     /// Get the AABB of the curve.
     fn bb(&self) -> Vec4;
 
