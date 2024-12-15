@@ -1,15 +1,24 @@
+use std::sync::Arc;
 use glam::{Vec2, Vec4, Vec4Swizzles};
 
 use crate::{bezier::Bezier, shape::Shape};
 
 #[derive(Debug)]
 pub struct Path {
-    data: Vec<Box<dyn Bezier>>
+    data: Vec<Arc<dyn Bezier>>
 }
 
 impl Path {
-    pub fn new(path: Vec<Box<dyn Bezier>>) -> Path {
+    pub fn new(path: Vec<Arc<dyn Bezier>>) -> Path {
         return Path { data: path }
+    }
+
+    pub fn get_curve_at_t(&self, t: f32) -> &Arc<dyn Bezier> {
+        let mut index = (t).floor() as usize;
+        if index > self.data.len() - 1 {
+            index = self.data.len() - 1
+        }
+        return &self.data[index];
     }
 }
 
@@ -34,8 +43,40 @@ impl Shape for Path {
 
 impl Bezier for Path {
     fn t(&self, t: f32) -> Vec2 {
-        let index = (t - 0.00001).floor() as usize;
-        return self.data[index].t(t.fract());
+        let t = if t > 0.0 { t - 0.01 } else { t };
+        return self.get_curve_at_t(t).t(t.fract());
+    }
+
+    fn trans_ctrl_poly(&self, _dist: f32) -> Arc<dyn Bezier> {
+        panic!("You can't translate the control polygon of a whole path yet!");
+    }
+
+    fn first_point(&self) -> &Vec2 {
+        return self.data.first().unwrap().first_point();
+    }
+
+    fn last_point(&self) -> &Vec2 {
+        return self.data.last().unwrap().last_point();
+    }
+
+    fn derivative(&self, t: f32) -> Vec2 {
+        return self.get_curve_at_t(t).derivative(t);
+    }
+
+    fn second_derivative(&self, t: f32) -> Vec2 {
+        return self.get_curve_at_t(t).second_derivative(t);
+    }
+
+    fn parallel(&self, dist: f32) -> Vec<Arc<dyn Bezier>> {
+        let mut parallel = vec![];
+        for curve in self.data.iter() {
+            parallel.extend(curve.parallel(dist));
+        }
+        return parallel;
+    }
+
+    fn split(&self, t: f32) -> Vec<Arc<dyn Bezier>> {
+        return self.get_curve_at_t(t).split(t);
     }
     
     fn bb(&self) -> Vec4 {
@@ -49,5 +90,13 @@ impl Bezier for Path {
             if minmax.w < max.y { max.y = minmax.w }
         }
         return Vec4::from([min.x, min.y, max.x, max.y]);
+    }
+
+    fn fix(&self) -> Vec<Arc<dyn Bezier>> {
+        let mut new_path = vec![];
+        for curve in self.data.iter() {
+            new_path.extend(curve.fix());
+        }
+        return new_path;
     }
 }

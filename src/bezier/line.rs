@@ -1,9 +1,10 @@
+use std::sync::Arc;
 use glam::{Vec2, Vec4};
 use crate::shape::Shape;
 
 use super::{lerp, Bezier};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Line {
     a: Vec2,
     b: Vec2
@@ -28,6 +29,53 @@ impl Bezier for Line {
             f32::min(self.a.x, self.b.x), f32::min(self.a.y, self.b.y),
             f32::max(self.a.x, self.b.x), f32::max(self.a.y, self.b.y),
         )
+    }
+
+    fn first_point(&self) -> &Vec2 {
+        &self.a
+    }
+
+    fn last_point(&self) -> &Vec2 {
+        &self.b
+    }
+
+    fn derivative(&self, t: f32) -> Vec2 {
+        return Vec2::from([
+            self.b.x - self.a.x,
+            self.b.y - self.a.y
+        ])
+    }
+
+    fn second_derivative(&self, _: f32) -> Vec2 {
+        return Vec2::splat(0.);
+    }
+
+    fn curvature(&self, t: f32) -> f32 {
+        return 0.; // a line is always flat. No need to calculate this.
+    }
+
+    fn split(&self, t: f32) -> Vec<Arc<dyn Bezier>> {
+        let z = Vec2::new(lerp(self.a.x, self.b.x, t), lerp(self.a.y, self.b.y, t));
+        return vec![
+            Arc::new(Line::new(self.a, z)),
+            Arc::new(Line::new(z, self.b)),
+        ]
+    }
+
+    fn fix(&self) -> Vec<Arc<dyn Bezier>> {
+        if self.a.y == self.b.y { return vec![]; } // Erase the line
+        return vec![Arc::new(Line::new(self.a, self.b))];
+    }
+
+    fn parallel(&self, dist: f32) -> Vec<Arc<dyn Bezier>> {
+        return vec![self.trans_ctrl_poly(dist)];
+    }
+
+    fn trans_ctrl_poly(&self, dist: f32) -> Arc<dyn Bezier> {
+        return Arc::new(Line::new(
+            self.a + dist*self.normal(0.),
+            self.b + dist*self.normal(1.),
+        ));
     }
 }
 

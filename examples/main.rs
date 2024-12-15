@@ -1,47 +1,43 @@
+use std::sync::Arc;
 use vesania::bezier::line::Line;
 use vesania::bezier::quadratic::Quadratic;
-use vesania::layer::{Layer, Shader};
+use vesania::fills;
+use vesania::layer::{Image, Layer, Shader};
 use vesania::path::Path;
 use vesania::render::{FillRule, Renderer};
 use vesania::shape::Shape;
 use vesania::bezier::Bezier;
 use glam::Vec2;
-use rgb::Rgba;
-
-#[derive(Debug)]
-struct Mat {}
-impl Shader for Mat {
-    fn fill(&self, _x: f32, _y: f32, _w: f32, _h: f32) -> Rgba<f32> {
-        return Rgba { r: 1.0, g: 1.0, b: 1.0, a: 1.0 }
-    }
-}
+use rgb::{Pixel, Rgba};
 
 fn main() {
-    let mut my_canvas = Canvas::new(300, 300);
+    let mut my_canvas = Canvas::new(3000, 3000);
     my_canvas.fill_with(Rgba::from((255, 255, 255, 255)));
 
-    let quad1 = Quadratic::new([10.0, 10.0].into(), [50.0, 50.0].into(), [100.0, 50.0].into());
-    let quad2 = Quadratic::new([100.0, 50.0].into(), [150.0, 50.0].into(), [200.0, 10.0].into());
-    let path = Path::new(vec![Box::new(quad1), Box::new(quad2)]);
+    let quad1 = Quadratic::new([400.0, 100.0].into(), [100.0, 100.0].into(), [100.0, 400.0].into());
+    let quad2 = Quadratic::new([100.0, 400.0].into(), [100.0, 700.0].into(), [400.0, 700.0].into());
+    let quad3 = Quadratic::new([400.0, 700.0].into(), [700.0, 700.0].into(), [700.0, 400.0].into());
+    let quad4 = Quadratic::new([700.0, 400.0].into(), [700.0, 100.0].into(), [400.0, 100.0].into());
 
-    let my_material = Mat{};
+    let quad5 = Quadratic::new([50.0, 10.0].into(), [20.0, 10.0].into(), [20.0, 40.0].into());
+    let quad6 = Quadratic::new([20.0, 40.0].into(), [20.0, 70.0].into(), [50.0, 70.0].into());
+    let quad7 = Quadratic::new([50.0, 70.0].into(), [80.0, 70.0].into(), [80.0, 40.0].into());
+    let quad8 = Quadratic::new([80.0, 40.0].into(), [80.0, 10.0].into(), [50.0, 10.0].into());
 
-    let rend = Renderer::new(path, Vec2::from([300., 300.]), FillRule::EvenOdd, &my_material);
+    let quad = Quadratic::new([10.0, 10.0].into(), [150.0, 400.0].into(), [290.0, 10.0].into()).fix();
+
+    //let path = Path::new(vec![Arc::new(quad1)]);
+    let path = Path::new(quad1.parallel(1.0));
+
+    //let my_material = fills::Radial::new([0.1, 1.0, 1.0, 1.0], [0.4, 1.0, 0.2, 1.0], [0.1, 0.1], 0.2);
+    let my_material = fills::Radial::new([1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 1.0], [0.1, 0.1], 0.2);
+
+    let rend = Renderer::new(path, Vec2::from([3000., 3000.]), FillRule::NonZero, &my_material);
     let img = rend.render();
 
-    for (i, pix) in img.coverage.iter().enumerate() {
-        if *pix > 0.0 {
-            *my_canvas.pixel_at_index(i) = 0xFF0000FF;
-        }
-    }
-
-    *my_canvas.pixel_at(10, 10)  = 0xFF00FFFF;
-    *my_canvas.pixel_at(50, 50)  = 0xFF00FFFF;
-    *my_canvas.pixel_at(100, 50) = 0xFF00FFFF;
-    *my_canvas.pixel_at(150, 50) = 0xFF00FFFF;
-    *my_canvas.pixel_at(200, 10) = 0xFF00FFFF;
-
+    my_canvas.image(img.paint());
     my_canvas.write_to_png("out.png").unwrap();
+    
 }
 
 pub struct Canvas {
@@ -81,5 +77,13 @@ impl<'pix> Canvas {
     pub fn to_be(&mut self) {
         self.buffer.iter_mut()
             .for_each(|pix| *pix = pix.to_be());
+    }
+
+    pub fn image(&mut self, img: Image) {
+        for (i, pix) in self.buffer.iter_mut().enumerate() {
+            *pix = unsafe {
+                std::mem::transmute::<Rgba<u8>, u32>(img.pixels.get(i).unwrap_or(&Rgba { r: 1.0, g: 1.0, b: 1.0, a: 1.0 }).map(|col| (col * 255.0) as u8)).to_be()
+            }
+        }
     }
 }
