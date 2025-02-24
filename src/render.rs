@@ -1,4 +1,5 @@
 use core::f32;
+use std::{mem::swap, ops::{Add, BitXor}};
 
 use glam::Vec2;
 
@@ -13,7 +14,7 @@ pub struct Renderer<'mat, M: Shader> {
 }
 
 impl<'mat, M> Renderer<'mat, M> where M: Shader {
-    pub fn new(path: Path, size: Vec2, rule: FillRule, material: &'mat M) -> Renderer<M> {
+    pub fn new(path: Path, size: Vec2, rule: FillRule, material: &'mat M) -> Renderer<'mat, M> {
         return Renderer { path, size, rule, material };
     }
 
@@ -73,4 +74,62 @@ impl<'mat, M> Renderer<'mat, M> where M: Shader {
 pub enum FillRule {
     NonZero,
     EvenOdd
+}
+
+
+#[derive(Clone, Copy, Debug)]
+pub struct Span {
+    start: f32,
+    end: f32
+}
+
+impl Span {
+    pub fn new(start: f32, end: f32) -> Span {
+        return Span { start, end };
+    }
+
+    pub fn direction(&self) -> f32 {
+        if self.start < self.end {
+            return 1.0;
+        } else {
+            return -1.0;
+        }
+    }
+}
+
+impl Add for Span {
+    type Output = Vec<Span>;
+    // This is wrong at the moment
+    // We need to first check if we're overlapping
+    fn add(self, rhs: Self) -> Self::Output {
+        let lhs = if self.direction() == -1.0 { // Swap if direction is negative
+            Span::new(self.end, self.start)
+        } else {
+            self
+        };
+
+        let rhs = if rhs.direction() == -1.0 { // Swap if direction is negative
+            Span::new(rhs.end, rhs.start)
+        } else {
+            rhs
+        };
+
+        // Check if we're overlapping
+
+        return vec![Span::new(f32::min(lhs.start, rhs.start), f32::max(lhs.end, rhs.end))];
+    }
+}
+
+impl BitXor for Span {
+    type Output = Vec<Span>;
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        let mut arr = [self.start, self.end, rhs.start, rhs.end];
+        if arr[0] > arr[2] { arr.swap(0, 2) }
+        if arr[1] > arr[3] { arr.swap(1, 3) }
+        if arr[0] > arr[1] { arr.swap(0, 1) }
+        if arr[2] > arr[3] { arr.swap(2, 3) }
+        if arr[1] > arr[2] { arr.swap(1, 2) }
+
+        return vec![Span::new(arr[0], arr[1]), Span::new(arr[2], arr[3])];
+    }
 }

@@ -4,7 +4,7 @@ use vesania::bezier::quadratic::Quadratic;
 use vesania::fills;
 use vesania::layer::{Image, Layer, Shader};
 use vesania::path::Path;
-use vesania::render::{FillRule, Renderer};
+use vesania::render::{FillRule, Renderer, Span};
 use vesania::shape::Shape;
 use vesania::bezier::Bezier;
 use glam::Vec2;
@@ -37,6 +37,15 @@ fn main() {
 
     my_canvas.image(img.paint());
     my_canvas.write_to_png("out.png").unwrap();
+
+    let a = Span::new(1.0, 10.0);
+    let b = Span::new(6.0, 20.0);
+
+    // a + b = 1 -> 20
+    // a ^ b = 1 -> 6 | 10 -> 20
+
+    dbg!(a ^ b);
+    dbg!(a + b);
     
 }
 
