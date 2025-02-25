@@ -1,9 +1,9 @@
 use core::f32;
-use std::{mem::swap, ops::{Add, BitXor}};
+use std::{mem::swap, ops::{Add, BitXor, Mul, Sub}, simd::f32x4};
 
-use glam::Vec2;
+use glam::{Vec2, Vec4};
 
-use crate::{bezier::{Bezier, Direction}, layer::{Layer, Shader}, path::Path, shape::Shape};
+use crate::{bezier::{line::Line, Bezier, Direction}, layer::{Layer, Shader}, path::Path, shape::Shape};
 
 #[derive(Debug)]
 pub struct Renderer<'mat, M: Shader> {
@@ -13,59 +13,80 @@ pub struct Renderer<'mat, M: Shader> {
     material: &'mat M
 }
 
+// TODO: RGB, BGR, VRGB, VBGR
+// Note: the steam deck uses VBRG for some reason.
+// Note: Pentile displays are almost useless since most of them
+// are very high dpi.
+// https://geometrian.com/resources/subpixelzoo/
+// https://en.wikipedia.org/wiki/PenTile_matrix_family#PenTile_RGBG
 impl<'mat, M> Renderer<'mat, M> where M: Shader {
     pub fn new(path: Path, size: Vec2, rule: FillRule, material: &'mat M) -> Renderer<'mat, M> {
         return Renderer { path, size, rule, material };
     }
 
+    /// # Split
+    /// Step one of the new AA pipeline. Splits
+    /// a path into a series of segments that are
+    /// contained in less than one pixel.
+    /// <br>
+    /// **NOTE**: This currently works only with lines.
+    /// In the future I will implement some sort of
+    /// interface for each bezier that returns its intersections
+    /// with the pixel grid in a parallel way.
+    //  TODO: convert path elements to lines?
+    pub fn split(&self) -> Vec<Line> {
+        let mut lines = Vec::new();
+        let mut points = Vec::new();
+        for bezier in self.path.read() {
+            let a = bezier.first_point();
+            let b = bezier.last_point();
+            let m = (b.y - a.y) / (b.x - a.x);
+            let rev_m = 1f32 / m;
+
+            // Vertical grid intersections
+            for x in (a.x as u32 .. b.x as u32).step_by(4) {
+                let x = x as f32;
+                let xvec = f32x4::from_array([x, x + 1., x + 2., x + 3.]);
+                let yvec = (xvec - f32x4::splat(a.x)) * f32x4::splat(m) + f32x4::splat(a.y);
+
+                points.push(Vec2::new(xvec[0], yvec[0]));
+                points.push(Vec2::new(xvec[1], yvec[1]));
+                points.push(Vec2::new(xvec[2], yvec[2]));
+                points.push(Vec2::new(xvec[3], yvec[3]));
+            }
+
+            // Horizontal grid intersections
+            for y in (a.y as u32 .. b.y as u32).step_by(4) {
+                let y = y as f32;
+                let yvec = f32x4::from_array([y, y + 1., y + 2., y + 3.]);
+                let xvec = (yvec - f32x4::splat(a.y)) * f32x4::splat(rev_m) + f32x4::splat(a.x);
+
+                points.push(Vec2::new(xvec[0], yvec[0]));
+                points.push(Vec2::new(xvec[1], yvec[1]));
+                points.push(Vec2::new(xvec[2], yvec[2]));
+                points.push(Vec2::new(xvec[3], yvec[3]));
+            }
+        }
+
+        // Connect all the dots into lines
+        for dots in points.windows(2) {
+            lines.push(Line::new(dots[0], dots[1]));
+        }
+
+        return lines;
+    }
+
     // TODO: use SIMD and a lot of threads
     // TODO: Split into scanlines
     // NOTE: 
-    pub fn render(&self) -> Layer<M> {
+    pub fn render(&self) -> Layer<M> { // i % w == x; i / y == y
         let mut layer = Layer::new(self.size, self.material);
-        let mut inters = Vec::new();
-        for (index, pixel) in layer.coverage.iter_mut().enumerate() {
-            let p = Vec2::from([index as f32 % layer.size.x, (index as f32 / layer.size.y).floor()]);
-            if index % self.size.x as usize == 0 {
-                inters.clear();
-                // If a ray hits a point shared between two curves, we decide wether the intersection
-                // counts twice (different winding direction) or once (same winding direction).
-                let mut last = f32::NAN;
-                let raw_inters = self.path.intersections(p);
-                for curr in raw_inters.iter() {
-                    if last == *curr || last <= (*curr + f32::EPSILON) && last >= (*curr - f32::EPSILON) { // Or close enough
-                        let prev = self.path.get_curve_at_t(last.floor()).direction();
-                        let next = self.path.get_curve_at_t(curr.floor()).direction();
-                        if prev == next {
-                            continue;
-                        }
-                    }
-                    last = *curr;
-                    inters.push((*curr, self.path.get_curve_at_t(*curr).direction()));
-                };
-            }            
+        // Step 1: Quantization
+        let segments = self.split();
 
-            let mut winding = 0;
-            for (int, dir) in &inters {
-                let int = self.path.t(*int).x;
-                if int <= p.x {
-                    match self.rule {
-                        FillRule::EvenOdd => winding += 1,
-                        FillRule::NonZero => match dir {
-                            Direction::Up   => winding += 1,
-                            Direction::Down => winding -= 1,
-                        }
-                    }
-                }
-            }
-            
-            // I'm sure there's a better way to do this
-            // FIXME: Implement AA
-            match self.rule {
-                FillRule::EvenOdd => if winding % 2 == 1 { *pixel = 1.0; },
-                FillRule::NonZero => if winding != 0 { *pixel = 1.0 }
-            }
-        }
+        dbg!(segments);
+
+
         return layer;
     }
 }

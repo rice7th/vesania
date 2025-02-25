@@ -13,6 +13,10 @@ impl Path {
         return Path { data: path }
     }
 
+    pub fn read(&self) -> &Vec<Arc<dyn Bezier>> {
+        return &self.data;
+    }
+
     pub fn get_curve_at_t(&self, t: f32) -> &Arc<dyn Bezier> {
         let mut index = (t).floor() as usize;
         if index > self.data.len() - 1 {

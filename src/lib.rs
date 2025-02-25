@@ -1,3 +1,5 @@
+#![feature(portable_simd)]
+
 pub mod bezier;
 pub mod shape;
 pub mod path;

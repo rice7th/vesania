@@ -11,23 +11,12 @@ use glam::Vec2;
 use rgb::{Pixel, Rgba};
 
 fn main() {
-    let mut my_canvas = Canvas::new(3000, 3000);
+    let mut my_canvas = Canvas::new(30, 30);
     my_canvas.fill_with(Rgba::from((255, 255, 255, 255)));
 
-    let quad1 = Quadratic::new([400.0, 100.0].into(), [100.0, 100.0].into(), [100.0, 400.0].into());
-    let quad2 = Quadratic::new([100.0, 400.0].into(), [100.0, 700.0].into(), [400.0, 700.0].into());
-    let quad3 = Quadratic::new([400.0, 700.0].into(), [700.0, 700.0].into(), [700.0, 400.0].into());
-    let quad4 = Quadratic::new([700.0, 400.0].into(), [700.0, 100.0].into(), [400.0, 100.0].into());
-
-    let quad5 = Quadratic::new([50.0, 10.0].into(), [20.0, 10.0].into(), [20.0, 40.0].into());
-    let quad6 = Quadratic::new([20.0, 40.0].into(), [20.0, 70.0].into(), [50.0, 70.0].into());
-    let quad7 = Quadratic::new([50.0, 70.0].into(), [80.0, 70.0].into(), [80.0, 40.0].into());
-    let quad8 = Quadratic::new([80.0, 40.0].into(), [80.0, 10.0].into(), [50.0, 10.0].into());
-
-    let quad = Quadratic::new([10.0, 10.0].into(), [150.0, 400.0].into(), [290.0, 10.0].into()).fix();
-
-    //let path = Path::new(vec![Arc::new(quad1)]);
-    let path = Path::new(quad1.parallel(1.0));
+    let line = Line::new([1.0, 1.0].into(), [6.0, 10.0].into());
+    
+    let path = Path::new(vec![Arc::new(line)]);
 
     //let my_material = fills::Radial::new([0.1, 1.0, 1.0, 1.0], [0.4, 1.0, 0.2, 1.0], [0.1, 0.1], 0.2);
     let my_material = fills::Radial::new([1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 1.0], [0.1, 0.1], 0.2);
@@ -40,13 +29,6 @@ fn main() {
 
     let a = Span::new(1.0, 10.0);
     let b = Span::new(6.0, 20.0);
-
-    // a + b = 1 -> 20
-    // a ^ b = 1 -> 6 | 10 -> 20
-
-    dbg!(a ^ b);
-    dbg!(a + b);
-    
 }
 
 pub struct Canvas {
