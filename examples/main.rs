@@ -15,7 +15,7 @@ fn main() {
     my_canvas.fill_with(Rgba::from((255, 255, 255, 255)));
 
     let line = Line::new([1.0, 1.0].into(), [6.0, 10.0].into());
-    
+    let quad = Quadratic::new([1.0, 1.0].into(), [4., 1.].into(), [5.0, 3.0].into());
     let path = Path::new(vec![Arc::new(line)]);
 
     //let my_material = fills::Radial::new([0.1, 1.0, 1.0, 1.0], [0.4, 1.0, 0.2, 1.0], [0.1, 0.1], 0.2);
@@ -29,6 +29,8 @@ fn main() {
 
     let a = Span::new(1.0, 10.0);
     let b = Span::new(6.0, 20.0);
+
+    
 }
 
 pub struct Canvas {

@@ -1,7 +1,7 @@
-use std::sync::Arc;
+use std::{simd::{f32x4, num::SimdFloat, StdFloat}, sync::Arc};
 
 use glam::{Mat2, Vec2, Vec4};
-use crate::shape::Shape;
+use crate::shape::{GridSegments, Shape};
 
 use super::{lerp, line::Line, Bezier};
 
@@ -155,6 +155,7 @@ impl Bezier for Quadratic {
 }
 
 // TODO: Add Epsilon values because floating point math sucks
+/*
 impl Shape for Quadratic {
     fn intersections(&self, p: Vec2) -> Vec<f32> {
         // Since we're shooting horizontal rays, we only need to care
@@ -184,5 +185,76 @@ impl Shape for Quadratic {
         if t2 <= 1.0 && t2 >= 0.0 { inters.push(t2) }
 
         return inters;
+    }
+}
+    */
+
+impl Shape for Quadratic {
+    fn grid_intersections(&self, grid: &mut GridSegments) {
+        // The intersections can be found by solving
+        // the parabola equation formed by the y component
+        // of the quadratic curve:
+        //
+        // at² + bt + c = z
+        // 
+        // Where z is either an x or a y position.
+        // TODO: Explain this better
+        // 
+        // The coefficients are derived from the control points as
+        // specified below:
+        let mut inters = vec![];
+
+        for x in (self.a.x as u32 .. self.c.x as u32).step_by(4)  {
+            let x = x as f32;
+            let xvec = f32x4::from_array([x, x + 1., x + 2., x + 3.]);
+
+            let a = f32x4::splat(self.a.x - 2.0*self.b.x + self.c.x);
+            let b = f32x4::splat(2.0 * (self.b.x - self.a.x));
+            let c = f32x4::splat(self.a.x) - xvec;
+            let delta = b*b - f32x4::splat(4.0)*a*c;
+
+            if delta <= f32x4::splat(-0.0001) { continue } // No intersections; Because of precision, delta can be negative.
+            let delta = f32x4::simd_max(f32x4::splat(0.0), delta); // clamp delta anyways
+
+            let t1 = (-b + delta.sqrt()) / (f32x4::splat(2.0) * a);
+            let t2 = (-b - delta.sqrt()) / (f32x4::splat(2.0) * a);
+
+            // Not sure how useful is this now
+            let t1 = if t1 == f32x4::splat(1.0) { f32x4::splat(1.0 - 0.001) } else { t1 };
+            let t2 = if t2 == f32x4::splat(1.0) { f32x4::splat(1.0 - 0.001) } else { t2 };
+
+            if t1 <= f32x4::splat(1.0) && t1 >= f32x4::splat(0.0) { inters.push(t1); }
+            if t2 <= f32x4::splat(1.0) && t2 >= f32x4::splat(0.0) { inters.push(t2); }
+        }
+
+        for y in (self.a.y as u32 .. self.c.y as u32).step_by(4)  {
+            let y = y as f32;
+            let yvec = f32x4::from_array([y, y + 1., y + 2., y + 3.]);
+
+            let a = f32x4::splat(self.a.y - 2.0*self.b.y + self.c.y);
+            let b = f32x4::splat(2.0 * (self.b.y - self.a.y));
+            let c = f32x4::splat(self.a.y) - yvec;
+            let delta = b*b - f32x4::splat(4.0)*a*c;
+
+            if delta <= f32x4::splat(-0.0001) { continue } // See above
+            let delta = f32x4::simd_max(f32x4::splat(0.0), delta);
+
+            let t1 = (-b + delta.sqrt()) / (f32x4::splat(2.0) * a);
+            let t2 = (-b - delta.sqrt()) / (f32x4::splat(2.0) * a);
+
+            // Not sure how useful is this now
+            let t1 = if t1 == f32x4::splat(1.0) { f32x4::splat(1.0 - 0.001) } else { t1 };
+            let t2 = if t2 == f32x4::splat(1.0) { f32x4::splat(1.0 - 0.001) } else { t2 };
+
+            if t1 <= f32x4::splat(1.0) && t1 >= f32x4::splat(0.0) { inters.push(t1); }
+            if t2 <= f32x4::splat(1.0) && t2 >= f32x4::splat(0.0) { inters.push(t2); }
+        }
+        
+
+        let tvals = inters.iter()
+            .map(|t| t.to_array())
+            .flatten()
+            .map(|t| self.t(t))
+            .collect::<Vec<Vec2>>();
     }
 }

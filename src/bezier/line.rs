@@ -1,6 +1,6 @@
-use std::sync::Arc;
+use std::{simd::f32x4, sync::Arc};
 use glam::{Vec2, Vec4};
-use crate::shape::Shape;
+use crate::shape::{GridSegments, Shape};
 
 use super::{lerp, Bezier};
 
@@ -80,14 +80,60 @@ impl Bezier for Line {
 }
 
 impl Shape for Line {
-    fn intersections(&self, p: Vec2) -> Vec<f32> {
-        if p.y > f32::max(self.a.y, self.b.y) { return vec![]; }
-        if self.a.x == self.b.x {
-            return vec![self.a.x];
-        } else {
-            let m = (self.b.y - self.a.y) / (self.b.x - self.a.x);
-            let i = (p.y - self.a.y) / m + self.a.x;
-            return vec![i];
+    fn grid_intersections(&self, grid: &mut GridSegments) {
+        let mut points = Vec::new();
+        let a = self.a;
+        let b = self.b;
+        let m = (b.y - a.y) / (b.x - a.x);
+        let rev_m = 1f32 / m;
+
+        // Vertical grid intersections
+        for x in (a.x as u32 .. b.x as u32).step_by(4) {
+            let x = x as f32;
+            let xvec = f32x4::from_array([x, x + 1., x + 2., x + 3.]);
+            let yvec = (xvec - f32x4::splat(a.x)) * f32x4::splat(m) + f32x4::splat(a.y);
+
+            points.push(Vec2::new(xvec[0], yvec[0]));
+            points.push(Vec2::new(xvec[1], yvec[1]));
+            points.push(Vec2::new(xvec[2], yvec[2]));
+            points.push(Vec2::new(xvec[3], yvec[3]));
+        }
+
+        // Horizontal grid intersections
+        for y in (a.y as u32 .. b.y as u32).step_by(4) {
+            let y = y as f32;
+            let yvec = f32x4::from_array([y, y + 1., y + 2., y + 3.]);
+            let xvec = (yvec - f32x4::splat(a.y)) * f32x4::splat(rev_m) + f32x4::splat(a.x);
+
+            points.push(Vec2::new(xvec[0], yvec[0]));
+            points.push(Vec2::new(xvec[1], yvec[1]));
+            points.push(Vec2::new(xvec[2], yvec[2]));
+            points.push(Vec2::new(xvec[3], yvec[3]));
+        }
+
+        // Sort all points
+        // FIXME: Different directions?
+        // TODO: How performant is this??
+        points.sort_by(|a, b| a.x.partial_cmp(&b.x).unwrap());
+        let points = points.iter().filter(|p| p.x <= self.b.x).copied().collect::<Vec<Vec2>>();
+
+        // Connect all the dots into lines
+        // TODO: Remove null lines (start/end are the same point)
+        // NOTE: These _should_ be sorted by x-position inside the pixel!
+        // Otherwise we connect dots in completely random numbers.
+        for dots in points.windows(2) {
+            // TODO: Make sure the assertions hold
+            let x = ((dots[0].x + dots[1].x) / 2.0) as usize;
+            let y = ((dots[0].y + dots[1].y) / 2.0) as usize;
+            
+            if dots[0] == dots[1] { continue; } // Skip
+
+            if dots[0].x <= self.b.x
+            && dots[1].x <= self.b.x {
+                grid[x][y].push(Line::new(dots[0], dots[1]));
+            } else {
+                grid[x][y].push(Line::new(dots[0], self.b));
+            }
         }
     }
 }

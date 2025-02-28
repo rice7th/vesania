@@ -3,7 +3,7 @@ use std::{mem::swap, ops::{Add, BitXor, Mul, Sub}, simd::f32x4};
 
 use glam::{Vec2, Vec4};
 
-use crate::{bezier::{line::Line, Bezier, Direction}, layer::{Layer, Shader}, path::Path, shape::Shape};
+use crate::{bezier::{line::Line, Bezier, Direction}, layer::{Layer, Shader}, path::Path, shape::{GridSegments, Shape}};
 
 #[derive(Debug)]
 pub struct Renderer<'mat, M: Shader> {
@@ -34,46 +34,10 @@ impl<'mat, M> Renderer<'mat, M> where M: Shader {
     /// interface for each bezier that returns its intersections
     /// with the pixel grid in a parallel way.
     //  TODO: convert path elements to lines?
-    pub fn split(&self) -> Vec<Line> {
-        let mut lines = Vec::new();
-        let mut points = Vec::new();
-        for bezier in self.path.read() {
-            let a = bezier.first_point();
-            let b = bezier.last_point();
-            let m = (b.y - a.y) / (b.x - a.x);
-            let rev_m = 1f32 / m;
-
-            // Vertical grid intersections
-            for x in (a.x as u32 .. b.x as u32).step_by(4) {
-                let x = x as f32;
-                let xvec = f32x4::from_array([x, x + 1., x + 2., x + 3.]);
-                let yvec = (xvec - f32x4::splat(a.x)) * f32x4::splat(m) + f32x4::splat(a.y);
-
-                points.push(Vec2::new(xvec[0], yvec[0]));
-                points.push(Vec2::new(xvec[1], yvec[1]));
-                points.push(Vec2::new(xvec[2], yvec[2]));
-                points.push(Vec2::new(xvec[3], yvec[3]));
-            }
-
-            // Horizontal grid intersections
-            for y in (a.y as u32 .. b.y as u32).step_by(4) {
-                let y = y as f32;
-                let yvec = f32x4::from_array([y, y + 1., y + 2., y + 3.]);
-                let xvec = (yvec - f32x4::splat(a.y)) * f32x4::splat(rev_m) + f32x4::splat(a.x);
-
-                points.push(Vec2::new(xvec[0], yvec[0]));
-                points.push(Vec2::new(xvec[1], yvec[1]));
-                points.push(Vec2::new(xvec[2], yvec[2]));
-                points.push(Vec2::new(xvec[3], yvec[3]));
-            }
-        }
-
-        // Connect all the dots into lines
-        for dots in points.windows(2) {
-            lines.push(Line::new(dots[0], dots[1]));
-        }
-
-        return lines;
+    pub fn split(&self) -> GridSegments {
+        let mut grid = vec![vec![vec![]; self.size.y as usize]; self.size.x as usize];
+        self.path.grid_intersections(&mut grid);
+        return grid;
     }
 
     // TODO: use SIMD and a lot of threads
@@ -84,7 +48,16 @@ impl<'mat, M> Renderer<'mat, M> where M: Shader {
         // Step 1: Quantization
         let segments = self.split();
 
-        dbg!(segments);
+        for x in segments {
+            for y in x {
+                if !y.is_empty() {
+                    for z in y {
+                        println!("({}, {}),", z.first_point().x, z.first_point().y);
+                        println!("({}, {}),", z.last_point().x, z.last_point().y);
+                    }
+                }
+            }
+        }
 
 
         return layer;

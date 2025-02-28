@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use glam::{Vec2, Vec4, Vec4Swizzles};
 
-use crate::{bezier::Bezier, shape::Shape};
+use crate::{bezier::{line::Line, Bezier}, shape::{GridSegments, Shape}};
 
 #[derive(Debug)]
 pub struct Path {
@@ -27,21 +27,10 @@ impl Path {
 }
 
 impl Shape for Path {
-    fn intersections(&self, p: Vec2) -> Vec<f32> {
-        let mut intersections = Vec::new();
-        for (index, element) in self.data.iter().enumerate() {
-            let bounds = element.bb();
-            if p.y > bounds.wy().min_element()
-            && p.y < bounds.wy().max_element() {
-                // Our ray at this height hits this element.
-                let el_int = element.intersections(p)
-                    .iter()
-                    .map(|i| i + index as f32)
-                    .collect::<Vec<f32>>();
-                intersections.extend(el_int);
-            }
+    fn grid_intersections(&self, grid: &mut GridSegments) {
+        for el in self.data.iter() {
+            el.grid_intersections(grid);
         }
-        return intersections;
     }
 }
 
