@@ -1,16 +1,19 @@
-use std::sync::Arc;
 use glam::{Vec2, Vec4, Vec4Swizzles};
+use std::sync::Arc;
 
-use crate::{bezier::{line::Line, Bezier}, shape::{GridSegments, Shape}};
+use crate::{
+    bezier::{line::Line, Bezier},
+    shape::{GridSegments, Shape},
+};
 
 #[derive(Debug)]
 pub struct Path {
-    data: Vec<Arc<dyn Bezier>>
+    data: Vec<Arc<dyn Bezier>>,
 }
 
 impl Path {
     pub fn new(path: Vec<Arc<dyn Bezier>>) -> Path {
-        return Path { data: path }
+        return Path { data: path };
     }
 
     pub fn read(&self) -> &Vec<Arc<dyn Bezier>> {
@@ -71,16 +74,24 @@ impl Bezier for Path {
     fn split(&self, t: f32) -> Vec<Arc<dyn Bezier>> {
         return self.get_curve_at_t(t).split(t);
     }
-    
+
     fn bb(&self) -> Vec4 {
         let mut min = Vec2::INFINITY;
         let mut max = Vec2::NEG_INFINITY;
         for element in &self.data {
             let minmax = element.bb();
-            if minmax.x < min.x { min.x = minmax.x }
-            if minmax.y < min.y { min.y = minmax.y }
-            if minmax.z < max.x { max.x = minmax.z }
-            if minmax.w < max.y { max.y = minmax.w }
+            if minmax.x < min.x {
+                min.x = minmax.x
+            }
+            if minmax.y < min.y {
+                min.y = minmax.y
+            }
+            if minmax.z < max.x {
+                max.x = minmax.z
+            }
+            if minmax.w < max.y {
+                max.y = minmax.w
+            }
         }
         return Vec4::from([min.x, min.y, max.x, max.y]);
     }

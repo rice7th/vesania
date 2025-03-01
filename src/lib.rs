@@ -1,8 +1,8 @@
 #![feature(portable_simd)]
 
 pub mod bezier;
-pub mod shape;
-pub mod path;
-pub mod layer;
-pub mod render;
 pub mod fills;
+pub mod layer;
+pub mod path;
+pub mod render;
+pub mod shape;

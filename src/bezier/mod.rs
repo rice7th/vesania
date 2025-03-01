@@ -1,15 +1,16 @@
-use std::sync::Arc;
-use std::fmt::Debug;
 use glam::{Mat2, Vec2, Vec4};
+use std::fmt::Debug;
+use std::sync::Arc;
 
 use crate::shape::Shape;
 
-pub mod quadratic;
 pub mod line;
+pub mod quadratic;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum Direction {
-    Up, Down
+    Up,
+    Down,
 }
 
 /// # Bezier
@@ -24,7 +25,7 @@ pub trait Bezier: Shape + Debug {
     /// and 1, nothing stops you from inputting any
     /// other number.
     fn t(&self, t: f32) -> Vec2;
-    
+
     /// # Bounding Arc
     /// Get the AABB of the curve.
     fn bb(&self) -> Vec4;
@@ -69,7 +70,7 @@ pub trait Bezier: Shape + Debug {
     /// its derivative. Thus, the same curve can have
     /// two different directions based on the order
     /// of its points.
-    /// 
+    ///
     // NOTE: After fixing the curve, the curve start
     // and end points are *guaranteed* to have
     // different heights.

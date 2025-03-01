@@ -3,26 +3,24 @@
 //! gradient, texture etc. so the user doesn't need
 //! to implement them again and again.
 
-use rgb::*;
-use glam::{Vec2, Vec4};
 use crate::layer::Shader;
+use glam::{Vec2, Vec4};
+use rgb::*;
 
 pub fn mix(a: Vec4, b: Vec4, t: f32) -> Vec4 {
-    return (1.0 - t) * a + b*t;
+    return (1.0 - t) * a + b * t;
 }
 
 /// # Solid Fill
 /// A simple solid color fill.
 #[derive(Debug)]
 pub struct Solid {
-    col: Rgba<f32>
+    col: Rgba<f32>,
 }
 
 impl Solid {
     pub fn new(col: [f32; 4]) -> Solid {
-        return Solid {
-            col: col.into()
-        }
+        return Solid { col: col.into() };
     }
 }
 
@@ -48,8 +46,8 @@ impl Radial {
             start: start.into(),
             end: end.into(),
             center: center.into(),
-            scale
-        }
+            scale,
+        };
     }
 }
 
@@ -58,11 +56,12 @@ impl Shader for Radial {
         use std::mem::transmute;
         let (x, y) = (x / w, y / h);
         let d = f32::hypot(x - self.center.x, y - self.center.y) * (1. / self.scale); // from center basically
-        let col = unsafe { // Please find a better way to do this.
+        let col = unsafe {
+            // Please find a better way to do this.
             transmute::<Vec4, Rgba<f32>>(mix(
                 transmute::<Rgba<f32>, Vec4>(self.start),
                 transmute::<Rgba<f32>, Vec4>(self.end),
-                d
+                d,
             ))
         };
         return col;

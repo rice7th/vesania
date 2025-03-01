@@ -1,6 +1,7 @@
-use std::{simd::{f32x4, num::SimdFloat, StdFloat}, sync::Arc};
+use core::f32;
+use std::{simd::{cmp::{SimdPartialEq, SimdPartialOrd}, f32x4, num::SimdFloat, StdFloat}, sync::Arc};
 
-use glam::{Mat2, Vec2, Vec4};
+use glam::{Mat2, Vec2, Vec4, Vec4Swizzles};
 use crate::shape::{GridSegments, Shape};
 
 use super::{lerp, line::Line, Bezier};
@@ -202,9 +203,13 @@ impl Shape for Quadratic {
         // 
         // The coefficients are derived from the control points as
         // specified below:
-        let mut inters = vec![];
+        let mut inters: Vec<f32> = vec![];
 
-        for x in (self.a.x as u32 .. self.c.x as u32).step_by(4)  {
+        let bb = self.bb();
+        let min = bb.xy();
+        let max = bb.zw();
+
+        for x in (min.x as u32 .. max.x as u32).step_by(4)  {
             let x = x as f32;
             let xvec = f32x4::from_array([x, x + 1., x + 2., x + 3.]);
 
@@ -213,21 +218,29 @@ impl Shape for Quadratic {
             let c = f32x4::splat(self.a.x) - xvec;
             let delta = b*b - f32x4::splat(4.0)*a*c;
 
-            if delta <= f32x4::splat(-0.0001) { continue } // No intersections; Because of precision, delta can be negative.
-            let delta = f32x4::simd_max(f32x4::splat(0.0), delta); // clamp delta anyways
+            let delta = delta.simd_lt(f32x4::splat(-0.0001)) // No intersections; Because of precision, delta can be negative.
+                .select(f32x4::splat(f32::NAN), delta); // Propagate NAN so all calculations with such values are negative. 
 
-            let t1 = (-b + delta.sqrt()) / (f32x4::splat(2.0) * a);
-            let t2 = (-b - delta.sqrt()) / (f32x4::splat(2.0) * a);
+            //let delta = f32x4::simd_max(f32x4::splat(0.0), delta); // clamp delta anyways
+            let delta_sqrt = delta.sqrt();
+            
+            let t1 = (-b + delta_sqrt) / (f32x4::splat(2.0) * a);
+            let t2 = (-b - delta_sqrt) / (f32x4::splat(2.0) * a);
 
             // Not sure how useful is this now
-            let t1 = if t1 == f32x4::splat(1.0) { f32x4::splat(1.0 - 0.001) } else { t1 };
-            let t2 = if t2 == f32x4::splat(1.0) { f32x4::splat(1.0 - 0.001) } else { t2 };
+            let t1 = t1.simd_ne(t1).select(f32x4::splat(f32::NAN), t1.simd_clamp(f32x4::splat(0.0001), f32x4::splat(0.9999)));
+            let t2 = t2.simd_ne(t2).select(f32x4::splat(f32::NAN), t2.simd_clamp(f32x4::splat(0.0001), f32x4::splat(0.9999)));
 
-            if t1 <= f32x4::splat(1.0) && t1 >= f32x4::splat(0.0) { inters.push(t1); }
-            if t2 <= f32x4::splat(1.0) && t2 >= f32x4::splat(0.0) { inters.push(t2); }
+            inters.extend(
+                t1.to_array()
+                .iter()
+                .chain(t2.to_array().iter())
+                .filter(|f| **f <= 1.0 && **f >= 0.0)
+                .copied()
+            );
         }
 
-        for y in (self.a.y as u32 .. self.c.y as u32).step_by(4)  {
+        for y in (min.y as u32 .. max.y as u32).step_by(4)  {
             let y = y as f32;
             let yvec = f32x4::from_array([y, y + 1., y + 2., y + 3.]);
 
@@ -236,25 +249,42 @@ impl Shape for Quadratic {
             let c = f32x4::splat(self.a.y) - yvec;
             let delta = b*b - f32x4::splat(4.0)*a*c;
 
-            if delta <= f32x4::splat(-0.0001) { continue } // See above
-            let delta = f32x4::simd_max(f32x4::splat(0.0), delta);
+            let delta = delta.simd_lt(f32x4::splat(-0.0001)) // See above
+                .select(f32x4::splat(f32::NAN), delta);
 
-            let t1 = (-b + delta.sqrt()) / (f32x4::splat(2.0) * a);
-            let t2 = (-b - delta.sqrt()) / (f32x4::splat(2.0) * a);
+            //let delta = f32x4::simd_max(f32x4::splat(0.0), delta);
+            let delta_sqrt = delta.sqrt();
+            
+            let t1 = (-b + delta_sqrt) / (f32x4::splat(2.0) * a);
+            let t2 = (-b - delta_sqrt) / (f32x4::splat(2.0) * a);
 
-            // Not sure how useful is this now
-            let t1 = if t1 == f32x4::splat(1.0) { f32x4::splat(1.0 - 0.001) } else { t1 };
-            let t2 = if t2 == f32x4::splat(1.0) { f32x4::splat(1.0 - 0.001) } else { t2 };
-
-            if t1 <= f32x4::splat(1.0) && t1 >= f32x4::splat(0.0) { inters.push(t1); }
-            if t2 <= f32x4::splat(1.0) && t2 >= f32x4::splat(0.0) { inters.push(t2); }
+            let t1 = t1.simd_ne(t1).select(f32x4::splat(f32::NAN), t1.simd_clamp(f32x4::splat(0.0001), f32x4::splat(0.9999)));
+            let t2 = t2.simd_ne(t2).select(f32x4::splat(f32::NAN), t2.simd_clamp(f32x4::splat(0.0001), f32x4::splat(0.9999)));
+            
+            inters.extend(
+                t1.to_array()
+                .iter()
+                .chain(t2.to_array().iter())
+                .filter(|f| **f <= 1.0 && **f >= 0.0)
+                .copied()
+            );
         }
-        
 
-        let tvals = inters.iter()
-            .map(|t| t.to_array())
-            .flatten()
-            .map(|t| self.t(t))
-            .collect::<Vec<Vec2>>();
+        let mut points = inters.iter().map(|t| self.t(*t)).collect::<Vec<_>>();
+        points.sort_by(|a, b| a.x.partial_cmp(&b.x).unwrap());
+
+        for dots in points.windows(2) {
+            let x = ((dots[0].x + dots[1].x) / 2.0) as usize;
+            let y = ((dots[0].y + dots[1].y) / 2.0) as usize;
+
+            if dots[0] == dots[1] { continue; }
+
+            if dots[0].x <= self.b.x
+            && dots[1].x <= self.b.x {
+                grid[x][y].push(Line::new(dots[0], dots[1]));
+            } else {
+                grid[x][y].push(Line::new(dots[0], self.b));
+            }
+        }
     }
 }
