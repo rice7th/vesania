@@ -113,17 +113,3 @@ impl Add for Span {
         return vec![Span::new(f32::min(lhs.start, rhs.start), f32::max(lhs.end, rhs.end))];
     }
 }
-
-impl BitXor for Span {
-    type Output = Vec<Span>;
-    fn bitxor(self, rhs: Self) -> Self::Output {
-        let mut arr = [self.start, self.end, rhs.start, rhs.end];
-        if arr[0] > arr[2] { arr.swap(0, 2) }
-        if arr[1] > arr[3] { arr.swap(1, 3) }
-        if arr[0] > arr[1] { arr.swap(0, 1) }
-        if arr[2] > arr[3] { arr.swap(2, 3) }
-        if arr[1] > arr[2] { arr.swap(1, 2) }
-
-        return vec![Span::new(arr[0], arr[1]), Span::new(arr[2], arr[3])];
-    }
-}
