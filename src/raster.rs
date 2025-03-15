@@ -71,45 +71,39 @@ pub enum FillRule {
 }
 
 
-#[derive(Clone, Copy, Debug)]
-pub struct Span {
-    start: f32,
-    end: f32
-}
+/// # Shadows
+/// A list of shadows cast by any segment.
+/// Shadows can be positive or negative, 
+/// annihilating each other in the process.
+#[derive(Clone, Debug)]
+pub struct Shadows(Vec<Vec2>);
 
-impl Span {
-    pub fn new(start: f32, end: f32) -> Span {
-        return Span { start, end };
+impl Shadows {
+    pub fn new(intervals: Vec<Vec2>) -> Shadows {
+        return Shadows(intervals);
     }
 
-    pub fn direction(&self) -> f32 {
-        if self.start < self.end {
-            return 1.0;
-        } else {
-            return -1.0;
+    pub fn inner(self) -> Vec<Vec2> {
+        return self.0;
+    }
+
+    pub fn fuse(self) -> Shadows {
+        let mut inter = self.inner();
+        inter.sort_by(|a, b| a[0].partial_cmp(&b[0]).unwrap());
+
+        let mut vet = vec![];
+        let mut start = inter[0][0];
+        let mut end = inter[0][1];
+        for i in 0..inter.len() {
+            if inter[i][0] <= end {
+                end = f32::max(inter[i][1], end);
+            } else { // Outside the range
+                vet.push([start, end].into());
+                start = inter[i][0];
+                end = inter[i][1];
+            }
         }
-    }
-}
-
-impl Add for Span {
-    type Output = Vec<Span>;
-    // This is wrong at the moment
-    // We need to first check if we're overlapping
-    fn add(self, rhs: Self) -> Self::Output {
-        let lhs = if self.direction() == -1.0 { // Swap if direction is negative
-            Span::new(self.end, self.start)
-        } else {
-            self
-        };
-
-        let rhs = if rhs.direction() == -1.0 { // Swap if direction is negative
-            Span::new(rhs.end, rhs.start)
-        } else {
-            rhs
-        };
-
-        // Check if we're overlapping
-
-        return vec![Span::new(f32::min(lhs.start, rhs.start), f32::max(lhs.end, rhs.end))];
+        vet.push([start, end].into());
+        return Self::new(vet);
     }
 }

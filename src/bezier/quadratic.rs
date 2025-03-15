@@ -161,7 +161,7 @@ impl Shape for Quadratic {
     fn intersections(&self, p: Vec2) -> Vec<f32> {
         // Since we're shooting horizontal rays, we only need to care
         // about the y components of the bezier. The intersections
-        // can be found by solving the parabola equation formed by
+        // can be foundb by solving the parabola equation formed by
         // the y component of the quadratic curve:
         // at² + bt + c = 0
         // 
@@ -230,7 +230,7 @@ impl Shape for Quadratic {
             // Not sure how useful is this now
             let t1 = t1.simd_ne(t1).select(f32x4::splat(f32::NAN), t1.simd_clamp(f32x4::splat(0.0001), f32x4::splat(0.9999)));
             let t2 = t2.simd_ne(t2).select(f32x4::splat(f32::NAN), t2.simd_clamp(f32x4::splat(0.0001), f32x4::splat(0.9999)));
-
+            
             inters.extend(
                 t1.to_array()
                 .iter()
@@ -260,7 +260,7 @@ impl Shape for Quadratic {
 
             let t1 = t1.simd_ne(t1).select(f32x4::splat(f32::NAN), t1.simd_clamp(f32x4::splat(0.0001), f32x4::splat(0.9999)));
             let t2 = t2.simd_ne(t2).select(f32x4::splat(f32::NAN), t2.simd_clamp(f32x4::splat(0.0001), f32x4::splat(0.9999)));
-            
+
             inters.extend(
                 t1.to_array()
                 .iter()
@@ -278,6 +278,9 @@ impl Shape for Quadratic {
             let y = ((dots[0].y + dots[1].y) / 2.0) as usize;
 
             if dots[0] == dots[1] { continue; }
+
+            dbg!(x);
+            dbg!(y);
 
             if dots[0].x <= self.b.x
             && dots[1].x <= self.b.x {

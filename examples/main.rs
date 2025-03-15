@@ -7,7 +7,7 @@ use vesania::bezier::Bezier;
 use vesania::fills;
 use vesania::layer::{Image, Layer, Shader};
 use vesania::path::Path;
-use vesania::render::{FillRule, Renderer, Span};
+use vesania::raster::{FillRule, Renderer, Shadow};
 use vesania::shape::Shape;
 
 fn main() {
@@ -15,6 +15,7 @@ fn main() {
     my_canvas.fill_with(Rgba::from((255, 255, 255, 255)));
 
     let line = Line::new([1.0, 1.0].into(), [6.0, 10.0].into());
+    //let quad = Quadratic::new([1.0, 1.0].into(), [5., 15.].into(), [20.0, 5.0].into());
     let quad = Quadratic::new([1.0, 1.0].into(), [5., 15.].into(), [20.0, 5.0].into());
     let path = Path::new(vec![Arc::new(quad)]);
 
@@ -33,8 +34,11 @@ fn main() {
     my_canvas.image(img.paint());
     my_canvas.write_to_png("out.png").unwrap();
 
-    let a = Span::new(1.0, 10.0);
-    let b = Span::new(6.0, 20.0);
+    let a = Shadow::new(1.0, 10.0);
+    let b = Shadow::new(10.0, 1.0);
+
+    dbg!(a.merge(Some(b)));
+    dbg!(a.merge(None));
 }
 
 pub struct Canvas {

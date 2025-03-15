@@ -4,5 +4,5 @@ pub mod bezier;
 pub mod fills;
 pub mod layer;
 pub mod path;
-pub mod render;
+pub mod raster;
 pub mod shape;
