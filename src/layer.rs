@@ -1,5 +1,4 @@
 use glam::{Vec2, Vec4};
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use rgb::{HetPixel, Rgba};
 
 /// # Layer
